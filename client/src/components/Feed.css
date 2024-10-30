@@ -1,0 +1,40 @@
+.feed-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 60%; /* 화면의 60% 너비 */
+  height: 100vh; /* 화면 전체 높이 사용 */
+  margin: 0 auto; /* 중앙 정렬 */
+}
+
+.feed-image {
+  width: 100%; /* 부모 요소의 너비에 맞게 */
+  height: auto;
+  border: 1px solid black;
+  border-radius: 10px;
+}
+
+.feed-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: black;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.feed-button.left {
+  left: 10px;
+}
+
+.feed-button.right {
+  right: 10px;
+}
+
+.feed-button:hover {
+  color: gray;
+}

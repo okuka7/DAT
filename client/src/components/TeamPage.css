@@ -1,0 +1,41 @@
+.random-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-top: 20px;
+  max-width: 70%; /* 화면 너비의 최대 70%까지만 차지 */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.random-page-image {
+  width: 100%; /* 부모 요소의 너비에 맞게 */
+  height: auto;
+  border: 1px solid black;
+  border-radius: 10px;
+}
+
+.random-page-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: black;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.random-page-button.left {
+  left: -40px;
+}
+
+.random-page-button.right {
+  right: -40px;
+}
+
+.random-page-button:hover {
+  color: gray;
+}

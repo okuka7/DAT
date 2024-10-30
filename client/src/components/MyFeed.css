@@ -1,0 +1,44 @@
+body {
+  padding-top: 100px; /* 헤더 높이만큼 여백 설정 */
+}
+
+.myfeed-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4개의 열로 구성 */
+  gap: 10px;
+  padding: 20px;
+  width: 60%; /* 화면의 60% 너비 */
+  margin: 0 auto; /* 중앙 정렬 */
+}
+
+.post-card {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.post-card:hover {
+  transform: scale(1.02);
+}
+
+.post-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.post-content {
+  padding: 10px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .myfeed-container {
+    grid-template-columns: repeat(2, 1fr); /* 작은 화면에서는 2개의 열 */
+  }
+}
