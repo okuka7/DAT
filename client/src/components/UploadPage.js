@@ -4,9 +4,7 @@ import "./UploadPage.css";
 
 function UploadPage() {
   const [productName, setProductName] = useState("");
-  const [price, setPrice] = useState("");
-  const [usage, setUsage] = useState("10"); // 기본값을 10으로 설정
-  const [status, setStatus] = useState("판매중");
+  const [status, setStatus] = useState("글");
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState([]);
 
@@ -27,8 +25,6 @@ function UploadPage() {
     try {
       const productData = {
         name: productName,
-        price: price,
-        usage: usage,
         status: status,
         description: description,
       };
@@ -80,7 +76,7 @@ function UploadPage() {
 
         <div className="info-section">
           <div className="input-field">
-            <label>이름</label>
+            <label>제목</label>
             <input
               type="text"
               value={productName}
@@ -89,31 +85,10 @@ function UploadPage() {
           </div>
 
           <div className="input-field">
-            <label>가격</label>
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </div>
-
-          <div className="input-field">
-            <label>사용감 (%)</label>
-            <select value={usage} onChange={(e) => setUsage(e.target.value)}>
-              <option value="10">10</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-              <option value="70">70</option>
-              <option value="90">90</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-
-          <div className="input-field">
-            <label>판매 상태</label>
+            <label>종류</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="판매중">판매중</option>
-              <option value="판매완료">판매완료</option>
+              <option value="글">글</option>
+              <option value="사진">사진</option>
             </select>
           </div>
         </div>
@@ -128,7 +103,7 @@ function UploadPage() {
       </div>
 
       <button className="product-upload-button" onClick={handleProductUpload}>
-        상품 올리기
+        글 올리기
       </button>
     </div>
   );

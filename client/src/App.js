@@ -1,23 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
 import Feed from "./components/Feed";
 import MyFeed from "./components/MyFeed";
 import MyPage from "./components/MyPage";
-import TeamPage from "./components/TeamPage";
 import UploadPage from "./components/UploadPage";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   return (
     <Router>
-      <Header />
+      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
       <Routes>
-        <Route path="/" element={<Feed />} />
-        <Route path="/myfeed" element={<MyFeed />} />
+        <Route path="/feed" element={<Feed isLoggedIn={isLoggedIn} />} />
+        <Route
+          path="/myfeed"
+          element={
+            <MyFeed isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+          }
+        />
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/team" element={<TeamPage />} />
         <Route path="/upload" element={<UploadPage />} />
-        {/* 업로드 페이지 경로 */}
+        {/* 다른 경로 추가 */}
       </Routes>
     </Router>
   );
