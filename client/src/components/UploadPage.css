@@ -1,0 +1,136 @@
+.upload-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* 사진과 정보 섹션을 가로로 정렬 */
+.content-section {
+  display: flex;
+  width: 100%;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+/* 사진 업로드 섹션 */
+.photo-upload-section {
+  flex: 1;
+  max-width: 200px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* 사진 업로드 버튼 하단 고정 */
+}
+
+.custom-upload-button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+}
+
+.photo-upload-input {
+  display: none;
+}
+
+/* 미리보기 섹션 */
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.main-preview {
+  margin-bottom: 10px;
+}
+
+.main-photo {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.thumbnail-preview {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.thumbnail-photo {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 정보 입력 섹션 */
+.info-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-field label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.input-field input,
+.input-field select {
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* 상세 설명 섹션 */
+.description-section {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.description-section label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.description-section textarea {
+  width: 100%;
+  height: 100px;
+  resize: none;
+}
+
+/* 상품 올리기 버튼 스타일 */
+.product-upload-button {
+  padding: 10px 20px;
+  margin-top: 20px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  width: 100%;
+}
+
+.product-upload-button:hover {
+  background-color: #555;
+}

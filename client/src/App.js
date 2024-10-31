@@ -5,6 +5,7 @@ import Feed from "./components/Feed";
 import MyFeed from "./components/MyFeed";
 import MyPage from "./components/MyPage";
 import TeamPage from "./components/TeamPage";
+import UploadPage from "./components/UploadPage";
 
 function App() {
   return (
@@ -13,9 +14,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Feed />} />
         <Route path="/myfeed" element={<MyFeed />} />
-        <Route path="/mypage" element={<MyPage />} />{" "}
-        {/* 마이페이지 경로 추가 */}
+        <Route path="/mypage" element={<MyPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/upload" element={<UploadPage />} />
+        {/* 업로드 페이지 경로 */}
       </Routes>
     </Router>
   );
