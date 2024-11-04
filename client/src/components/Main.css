@@ -1,0 +1,44 @@
+.main-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.latest-posts,
+.attendance-tracker {
+  margin-bottom: 40px;
+}
+
+.latest-posts .post-card,
+.attendance-tracker button {
+  margin-top: 10px;
+}
+
+.attendance-tracker button {
+  padding: 10px;
+  margin-right: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.attendance-tracker p {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+.attendance-container {
+  padding: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px; /* 출석 시간과 총 합산 시간 간격 */
+}
+
+.total-time-display {
+  font-size: 3rem; /* 큰 숫자로 표시 */
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

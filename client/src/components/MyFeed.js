@@ -30,15 +30,22 @@ const postsData = [
 ];
 
 function MyFeed({ isLoggedIn, setIsLoggedIn }) {
-  const [activeTab, setActiveTab] = useState("글");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [id, setId] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    if (id === "test" && password === "1234") {
+      setIsLoggedIn(true);
+      setShowLoginModal(false);
+    } else {
+      alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+    }
+  };
 
   return (
     <div className="myfeed-container">
-      <Tabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isLoggedIn={isLoggedIn}
-      />
+      <Tabs isLoggedIn={isLoggedIn} setShowLoginModal={setShowLoginModal} />
       <div className="feed-container">
         {postsData.map((post) => (
           <div key={post.id} className="post-card">
@@ -54,6 +61,31 @@ function MyFeed({ isLoggedIn, setIsLoggedIn }) {
           </div>
         ))}
       </div>
+
+      {showLoginModal && (
+        <div className="modal" onClick={() => setShowLoginModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>로그인</h2>
+            <input
+              type="text"
+              placeholder="아이디"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              className="login-input"
+            />
+            <input
+              type="password"
+              placeholder="비밀번호"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+            />
+            <button onClick={handleLogin} className="login-button">
+              로그인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

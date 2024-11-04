@@ -135,3 +135,10 @@ body {
 .close-button:hover {
   background-color: gray;
 }
+
+.attendance-tracker-total {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
