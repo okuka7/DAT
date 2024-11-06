@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { FaUser } from "react-icons/fa";
 import "./Header.css";
 
@@ -16,17 +17,26 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
     if (!isLoggedIn) {
       setShowLoginModal(true);
     } else {
-      navigate("/mypage");
+      navigate("/mypage"); // 로그인 상태일 때 아이콘 클릭 시 마이페이지로 이동
     }
   };
 
   const handleLogin = () => {
-    if (id === "test" && password === "1234") {
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-    } else {
-      alert("아이디 또는 비밀번호가 일치하지 않습니다.");
-    }
+    axios
+      .post("/api/auth/login", { id, password })
+      .then((response) => {
+        if (response.data.success) {
+          setIsLoggedIn(true);
+          setShowLoginModal(false);
+          localStorage.setItem("authToken", response.data.token);
+        } else {
+          alert("로그인에 실패했습니다.");
+        }
+      })
+      .catch((error) => {
+        console.error("로그인 오류:", error);
+        alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+      });
   };
 
   const toggleSearch = () => {

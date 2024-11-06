@@ -7,6 +7,7 @@ function UploadPage() {
   const [status, setStatus] = useState("글");
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState([]);
+  const [photoFiles, setPhotoFiles] = useState([]);
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -14,21 +15,32 @@ function UploadPage() {
       alert("최대 5장까지 업로드 가능합니다.");
       return;
     }
+
     const newPhotos = files.slice(0, 5 - photos.length);
     setPhotos((prevPhotos) => [
       ...prevPhotos,
       ...newPhotos.map((file) => URL.createObjectURL(file)),
     ]);
+    setPhotoFiles((prevFiles) => [...prevFiles, ...newPhotos]);
   };
 
   const handleProductUpload = async () => {
+    const formData = new FormData();
+    formData.append("name", productName);
+    formData.append("status", status);
+    formData.append("description", description);
+
+    // 사진 파일들을 FormData에 추가
+    photoFiles.forEach((file, index) => {
+      formData.append("photos", file); // Spring Boot에서 배열로 처리 가능
+    });
+
     try {
-      const productData = {
-        name: productName,
-        status: status,
-        description: description,
-      };
-      await axios.post("http://localhost:8080/api/products", productData);
+      await axios.post("http://localhost:8080/api/products", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       alert("상품이 성공적으로 업로드되었습니다!");
     } catch (error) {
       console.error("상품 업로드에 실패했습니다.", error);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Header from "./Header"; // Header 컴포넌트가 있다면 import 합니다.
+import axios from "axios"; // Axios for API requests
+import Header from "./Header";
 import "./Main.css";
 
 function Main() {
@@ -8,12 +9,24 @@ function Main() {
   const [accumulatedTime, setAccumulatedTime] = useState(0);
   const [resettableTime, setResettableTime] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const latestPosts = [
     { id: 1, title: "최신 글 제목 1", content: "최신 글 내용 1" },
     { id: 2, title: "최신 글 제목 2", content: "최신 글 내용 2" },
     { id: 3, title: "최신 글 제목 3", content: "최신 글 내용 3" },
   ];
+
+  useEffect(() => {
+    // 로그인 상태 확인 및 이전 출석 시간 불러오기
+    axios
+      .get("/api/user/status")
+      .then((response) => {
+        setIsLoggedIn(response.data.isLoggedIn);
+        setAccumulatedTime(response.data.accumulatedTime);
+      })
+      .catch((error) => console.error(error));
+  }, []);
 
   const handleStart = () => {
     setAttendanceStatus("출근한 상태");
@@ -23,6 +36,11 @@ function Main() {
       setResettableTime((prev) => prev + 1000);
     }, 1000);
     setIntervalId(id);
+
+    axios
+      .post("/api/attendance/start")
+      .then((response) => console.log(response.data))
+      .catch((error) => console.error(error));
   };
 
   const handlePauseOrResume = () => {
@@ -30,6 +48,11 @@ function Main() {
       clearInterval(intervalId);
       setIsCheckingTime(false);
       setAttendanceStatus("정지한 상태");
+
+      axios
+        .post("/api/attendance/pause")
+        .then((response) => console.log(response.data))
+        .catch((error) => console.error(error));
     } else {
       setAttendanceStatus("출근한 상태");
       const id = setInterval(() => {
@@ -37,6 +60,11 @@ function Main() {
       }, 1000);
       setIntervalId(id);
       setIsCheckingTime(true);
+
+      axios
+        .post("/api/attendance/resume")
+        .then((response) => console.log(response.data))
+        .catch((error) => console.error(error));
     }
   };
 
@@ -47,6 +75,11 @@ function Main() {
 
     setAccumulatedTime((prev) => prev + resettableTime);
     setResettableTime(0);
+
+    axios
+      .post("/api/attendance/end", { resettableTime })
+      .then((response) => console.log(response.data))
+      .catch((error) => console.error(error));
   };
 
   const formatTime = (milliseconds) => {
@@ -75,7 +108,7 @@ function Main() {
 
   return (
     <div className="main-container">
-      <Header isLoggedIn={false} setIsLoggedIn={() => {}} />
+      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
 
       <section className="latest-posts">
         <h2>최신 글</h2>
@@ -87,30 +120,29 @@ function Main() {
         ))}
       </section>
 
-      <div className="attendance-container">
-        <section className="attendance-tracker">
-          <h2>출석 시간</h2>
-          <p>현재 상태: {attendanceStatus}</p>
-          <p>경과 시간: {formatTime(accumulatedTime)}</p>
-          <p>
-            퇴근 시 초기화되는 시간: {formatTimeWithSeconds(resettableTime)}
-          </p>
-          {!isCheckingTime ? (
-            <button onClick={handleStart}>출근</button>
-          ) : (
-            <button onClick={handlePauseOrResume}>
-              {isCheckingTime ? "정지" : "시작"}
-            </button>
-          )}
-          <button onClick={handleEnd}>퇴근</button>
-        </section>
-        <section className="attendance-tracker-total">
+      {isLoggedIn && (
+        <div className="attendance-container">
+          <section className="attendance-tracker">
+            <h2>출석 시간</h2>
+            <p>현재 상태: {attendanceStatus}</p>
+            <p>경과 시간: {formatTime(accumulatedTime)}</p>
+            <p>
+              퇴근 시 초기화되는 시간: {formatTimeWithSeconds(resettableTime)}
+            </p>
+            {!isCheckingTime ? (
+              <button onClick={handleStart}>출근</button>
+            ) : (
+              <button onClick={handlePauseOrResume}>
+                {isCheckingTime ? "정지" : "시작"}
+              </button>
+            )}
+            <button onClick={handleEnd}>퇴근</button>
+          </section>
           <div className="total-time-display">
-            {" "}
             <strong>{formatTotalHoursAndMinutes(accumulatedTime)}</strong>
           </div>
-        </section>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

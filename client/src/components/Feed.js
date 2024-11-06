@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios"; // axios import
 import "./Feed.css";
-
-const dummyPosts = Array.from({ length: 16 }, (_, index) => ({
-  id: index + 1,
-  imageUrl: `https://via.placeholder.com/${150 + (index % 5) * 50}x${
-    200 + (index % 3) * 50
-  }?text=Post+${index + 1}`,
-  content: `This is the content of post ${index + 1}`,
-}));
 
 function Feed() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    setPosts(dummyPosts);
+    // Spring Boot API에서 데이터 가져오기
+    axios
+      .get("/api/posts") // API URL을 Spring Boot에 맞게 조정하세요
+      .then((response) => {
+        setPosts(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch posts:", error);
+      });
   }, []);
 
   return (

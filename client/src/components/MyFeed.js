@@ -1,53 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Tabs from "./Tabs";
 import "./MyFeed.css";
-
-const postsData = [
-  {
-    id: 1,
-    imageUrl: "https://via.placeholder.com/150",
-    title: "글 제목 1",
-    content: "글 내용 1",
-  },
-  {
-    id: 2,
-    imageUrl: "https://via.placeholder.com/150",
-    title: "사진 제목 1",
-    content: "사진 내용 1",
-  },
-  {
-    id: 3,
-    imageUrl: "https://via.placeholder.com/150",
-    title: "글 제목 2",
-    content: "글 내용 2",
-  },
-  {
-    id: 4,
-    imageUrl: "https://via.placeholder.com/150",
-    title: "사진 제목 2",
-    content: "사진 내용 2",
-  },
-];
 
 function MyFeed({ isLoggedIn, setIsLoggedIn }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const [posts, setPosts] = useState([]);
+
+  // Spring Boot API에서 게시물 데이터 가져오기
+  useEffect(() => {
+    axios
+      .get("/api/posts") // Spring Boot 게시물 API 엔드포인트
+      .then((response) => {
+        setPosts(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch posts:", error);
+      });
+  }, []);
 
   const handleLogin = () => {
-    if (id === "test" && password === "1234") {
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-    } else {
-      alert("아이디 또는 비밀번호가 일치하지 않습니다.");
-    }
+    axios
+      .post("/api/auth/login", { id, password }) // Spring Boot 로그인 엔드포인트
+      .then((response) => {
+        if (response.data.success) {
+          setIsLoggedIn(true);
+          setShowLoginModal(false);
+          localStorage.setItem("authToken", response.data.token); // 로그인 성공 시 토큰 저장
+        } else {
+          alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+        }
+      })
+      .catch((error) => {
+        console.error("로그인 오류:", error);
+        alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+      });
   };
 
   return (
     <div className="myfeed-container">
       <Tabs isLoggedIn={isLoggedIn} setShowLoginModal={setShowLoginModal} />
       <div className="feed-container">
-        {postsData.map((post) => (
+        {posts.map((post) => (
           <div key={post.id} className="post-card">
             <img
               src={post.imageUrl}
