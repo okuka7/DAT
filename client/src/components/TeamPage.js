@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import API from "../api"; // API 인스턴스 import
 import "./TeamPage.css";
 
 function TeamPage() {
@@ -7,8 +7,7 @@ function TeamPage() {
 
   useEffect(() => {
     // Spring Boot API에서 팀 정보 가져오기
-    axios
-      .get("/api/team") // 팀 정보를 제공하는 Spring Boot API 엔드포인트
+    API.get("/team") // 팀 정보를 제공하는 Spring Boot API 엔드포인트
       .then((response) => {
         setTeamInfo(response.data);
       })

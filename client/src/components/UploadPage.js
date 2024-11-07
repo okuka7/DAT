@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../AuthContext"; // AuthContext import
+import API from "../api"; // API 인스턴스 import
 import "./UploadPage.css";
 
 function UploadPage() {
+  const { isLoggedIn } = useContext(AuthContext); // AuthContext에서 로그인 상태 확인
   const [productName, setProductName] = useState("");
   const [status, setStatus] = useState("글");
   const [description, setDescription] = useState("");
@@ -25,6 +27,11 @@ function UploadPage() {
   };
 
   const handleProductUpload = async () => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", productName);
     formData.append("status", status);
@@ -32,11 +39,11 @@ function UploadPage() {
 
     // 사진 파일들을 FormData에 추가
     photoFiles.forEach((file, index) => {
-      formData.append("photos", file); // Spring Boot에서 배열로 처리 가능
+      formData.append("photos", file);
     });
 
     try {
-      await axios.post("http://localhost:8080/api/products", formData, {
+      await API.post("/products", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

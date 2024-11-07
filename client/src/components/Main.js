@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios"; // Axios for API requests
+import React, { useState, useContext, useEffect } from "react";
+import { AuthContext } from "../AuthContext";
+import API from "../api";
 import Header from "./Header";
 import "./Main.css";
+import { useNavigate } from "react-router-dom";
 
-function Main() {
+function Main({ setShowLoginModal }) {
+  const { isLoggedIn } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [isCheckingTime, setIsCheckingTime] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState("퇴근한 상태");
   const [accumulatedTime, setAccumulatedTime] = useState(0);
   const [resettableTime, setResettableTime] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const latestPosts = [
     { id: 1, title: "최신 글 제목 1", content: "최신 글 내용 1" },
@@ -18,15 +21,14 @@ function Main() {
   ];
 
   useEffect(() => {
-    // 로그인 상태 확인 및 이전 출석 시간 불러오기
-    axios
-      .get("/api/user/status")
-      .then((response) => {
-        setIsLoggedIn(response.data.isLoggedIn);
-        setAccumulatedTime(response.data.accumulatedTime);
-      })
-      .catch((error) => console.error(error));
-  }, []);
+    if (isLoggedIn) {
+      API.get("/user/status")
+        .then((response) => {
+          setAccumulatedTime(response.data.accumulatedTime);
+        })
+        .catch((error) => console.error(error));
+    }
+  }, [isLoggedIn]);
 
   const handleStart = () => {
     setAttendanceStatus("출근한 상태");
@@ -37,8 +39,7 @@ function Main() {
     }, 1000);
     setIntervalId(id);
 
-    axios
-      .post("/api/attendance/start")
+    API.post("/attendance/start")
       .then((response) => console.log(response.data))
       .catch((error) => console.error(error));
   };
@@ -49,8 +50,7 @@ function Main() {
       setIsCheckingTime(false);
       setAttendanceStatus("정지한 상태");
 
-      axios
-        .post("/api/attendance/pause")
+      API.post("/attendance/pause")
         .then((response) => console.log(response.data))
         .catch((error) => console.error(error));
     } else {
@@ -61,8 +61,7 @@ function Main() {
       setIntervalId(id);
       setIsCheckingTime(true);
 
-      axios
-        .post("/api/attendance/resume")
+      API.post("/attendance/resume")
         .then((response) => console.log(response.data))
         .catch((error) => console.error(error));
     }
@@ -76,8 +75,7 @@ function Main() {
     setAccumulatedTime((prev) => prev + resettableTime);
     setResettableTime(0);
 
-    axios
-      .post("/api/attendance/end", { resettableTime })
+    API.post("/attendance/end", { resettableTime })
       .then((response) => console.log(response.data))
       .catch((error) => console.error(error));
   };
@@ -90,15 +88,6 @@ function Main() {
     return `${days}일 ${hours}시간 ${minutes}분`;
   };
 
-  const formatTimeWithSeconds = (milliseconds) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const days = Math.floor(totalSeconds / 86400);
-    const hours = Math.floor((totalSeconds % 86400) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${days}일 ${hours}시간 ${minutes}분 ${seconds}초`;
-  };
-
   const formatTotalHoursAndMinutes = (milliseconds) => {
     const totalMinutes = Math.floor(milliseconds / 60000);
     const hours = Math.floor(totalMinutes / 60);
@@ -108,7 +97,7 @@ function Main() {
 
   return (
     <div className="main-container">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <Header setShowLoginModal={setShowLoginModal} />
 
       <section className="latest-posts">
         <h2>최신 글</h2>
@@ -126,9 +115,7 @@ function Main() {
             <h2>출석 시간</h2>
             <p>현재 상태: {attendanceStatus}</p>
             <p>경과 시간: {formatTime(accumulatedTime)}</p>
-            <p>
-              퇴근 시 초기화되는 시간: {formatTimeWithSeconds(resettableTime)}
-            </p>
+            <p>퇴근 시 초기화되는 시간: {formatTime(resettableTime)}</p>
             {!isCheckingTime ? (
               <button onClick={handleStart}>출근</button>
             ) : (

@@ -1,4 +1,4 @@
 package com.server.security;
 
-public class PasswordEncoder {
+public class JwtTokenProvider {
 }

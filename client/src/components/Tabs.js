@@ -1,21 +1,10 @@
-import React, { useEffect } from "react";
-import axios from "axios";
+import React, { useContext } from "react";
+import { AuthContext } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
 
-function Tabs({ isLoggedIn, setIsLoggedIn, setShowLoginModal }) {
+function Tabs({ setShowLoginModal }) {
+  const { isLoggedIn } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  // Spring Boot API에서 로그인 상태 확인
-  useEffect(() => {
-    axios
-      .get("/api/auth/status") // Spring Boot 로그인 상태 확인 엔드포인트
-      .then((response) => {
-        setIsLoggedIn(response.data.isLoggedIn);
-      })
-      .catch((error) => {
-        console.error("Failed to check login status:", error);
-      });
-  }, [setIsLoggedIn]);
 
   const handleUploadClick = () => {
     if (isLoggedIn) {
