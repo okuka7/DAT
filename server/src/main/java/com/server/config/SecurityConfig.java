@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/users/register").permitAll()  // 공개 경로
-                        .requestMatchers("/api/users/getLoginUser", "/api/users/profile", "/api/users/delete").authenticated()  // 인증 필요
+                        .requestMatchers("/api/users/getLoginUser", "/api/users/profile", "/api/users/delete", "/api/user/status").authenticated()  // 인증 필요
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
