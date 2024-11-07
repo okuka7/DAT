@@ -1,14 +1,17 @@
+// API 인스턴스 파일 (api.js)
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080/api", // Spring Boot 서버의 기본 URL
+  baseURL: "http://localhost:8080/api",
 });
 
-// JWT 토큰이 있을 경우 헤더에 추가
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken"); // 로컬 스토리지에서 토큰을 가져옴
+  const token = localStorage.getItem("authToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log("Authorization 헤더 추가됨:", config.headers.Authorization); // 확인용 로그
+  } else {
+    console.log("토큰 없음");
   }
   return config;
 });

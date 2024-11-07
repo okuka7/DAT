@@ -22,7 +22,7 @@ function Main({ setShowLoginModal }) {
 
   useEffect(() => {
     if (isLoggedIn) {
-      API.get("/user/status")
+      API.get("/users/status")
         .then((response) => {
           setAccumulatedTime(response.data.accumulatedTime);
         })

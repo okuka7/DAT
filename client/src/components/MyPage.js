@@ -1,50 +1,31 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../AuthContext";
-import API from "../api";
 import { useNavigate } from "react-router-dom";
+import API from "../api";
 import "./MyPage.css";
 
 function MyPage() {
-  const { isLoggedIn, logout } = useContext(AuthContext);
+  const { isLoggedIn, user, logout } = useContext(AuthContext); // user 상태를 가져옵니다.
   const [userNickname, setUserNickname] = useState("User");
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isLoggedIn) {
-      // 토큰을 콘솔에 출력하여 제대로 저장되었는지 확인합니다.
-      const authToken = localStorage.getItem("authToken");
-      console.log("Stored Token:", authToken);
-
-      if (authToken) {
-        // 서버에서 사용자 정보를 가져옵니다.
-        API.get("/api/users/getLoginUser", {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        })
-          .then((response) => {
-            console.log("Response Data:", response.data); // 응답 데이터 구조 확인
-            setUserNickname(response.data.username); // username 필드가 맞는지 확인 필요
-          })
-          .catch((error) => {
-            console.error("Failed to fetch user data:", error);
-            if (error.response && error.response.status === 403) {
-              // 토큰이 유효하지 않거나 권한이 없을 경우 로그아웃 처리
-              alert("Session expired or unauthorized. Please log in again.");
-              logout();
-              navigate("/login");
-            }
-          });
+      // 이미 로그인한 경우
+      if (user) {
+        // user가 AuthProvider에서 설정된 경우
+        setUserNickname(user.username); // username 필드가 맞는지 확인 필요
       } else {
-        console.error("Token not found or invalid.");
+        // user가 null인 경우 (예: 로그인 후 상태가 변경된 경우)
+        console.error("User information is not available.");
         logout();
         navigate("/login");
       }
     } else {
       navigate("/");
     }
-  }, [isLoggedIn, navigate, logout]);
+  }, [isLoggedIn, user, navigate, logout]);
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;

@@ -26,10 +26,11 @@ function LoginModal({ closeModal }) {
 
   const handleLogin = () => {
     axios
-      .post("/api/auth/login", { username, password })
+      .post("http://localhost:8080/api/auth/login", { username, password })
       .then((response) => {
         if (response.data.success) {
-          login(response.data.token, response.data.user);
+          const token = response.data.data; // 응답에서 토큰 추출
+          login(token, { username });
           closeModal();
         } else {
           alert("로그인에 실패했습니다.");
@@ -48,7 +49,12 @@ function LoginModal({ closeModal }) {
     }
 
     axios
-      .post("/api/users/register", { username, password, email, name })
+      .post("http://localhost:8080/api/users/register", {
+        username,
+        password,
+        email,
+        name,
+      })
       .then((response) => {
         if (response.data.success) {
           alert("회원가입이 완료되었습니다. 로그인해 주세요.");
