@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class UserServicelmpl implements UserService {
+public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
@@ -40,4 +40,16 @@ public class UserServicelmpl implements UserService {
                     return userRepository.save(user);
                 }).orElseThrow(()->new RuntimeException("User not found"));
     }
+
+    @Override
+    public boolean authenticate(String username, String password) {
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.isPresent() && passwordEncoder.matches(password, user.get().getPassword());
+    }
+
+    @Override
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username); // findByUsername 메서드가 UserRepository에 있어야 합니다.
+    }
+
 }
