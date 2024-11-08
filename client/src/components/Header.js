@@ -22,7 +22,7 @@ function Header({ setShowLoginModal }) {
         99
       </Link>
       <nav className="header">
-        <Link to="/feed" className="header-link">
+        <Link to="/" className="header-link">
           New
         </Link>
         <Link to="/myfeed" className="header-link">

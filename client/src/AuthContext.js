@@ -12,11 +12,10 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       API.get("/users/getLoginUser")
         .then((response) => {
-          setUser(response.data); // 사용자 정보 설정
+          setUser(response.data);
           setIsLoggedIn(true);
         })
-        .catch((error) => {
-          console.error("Failed to fetch user data:", error);
+        .catch(() => {
           logout(); // 유효하지 않은 토큰 시 로그아웃
         });
     }

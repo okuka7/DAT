@@ -28,7 +28,7 @@ function Main({ setShowLoginModal }) {
         })
         .catch((error) => console.error(error));
     }
-  }, [isLoggedIn]);
+  }, []); // 빈 배열로 한 번만 실행되도록 설정
 
   const handleStart = () => {
     setAttendanceStatus("출근한 상태");
