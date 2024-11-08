@@ -1,12 +1,13 @@
-import React, { useState, useContext, useEffect } from "react";
-import { AuthContext } from "../AuthContext";
+// src/components/Main.js
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import API from "../api";
 import Header from "./Header";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
 
 function Main({ setShowLoginModal }) {
-  const { isLoggedIn } = useContext(AuthContext);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // Redux에서 isLoggedIn 상태 가져오기
   const navigate = useNavigate();
   const [isCheckingTime, setIsCheckingTime] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState("퇴근한 상태");
@@ -28,7 +29,7 @@ function Main({ setShowLoginModal }) {
         })
         .catch((error) => console.error(error));
     }
-  }, []); // 빈 배열로 한 번만 실행되도록 설정
+  }, [isLoggedIn]);
 
   const handleStart = () => {
     setAttendanceStatus("출근한 상태");

@@ -1,16 +1,19 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
-import { AuthContext } from "../AuthContext";
-import axios from "axios";
+// src/components/LoginModal.js
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, registerUser } from "../slices/authSlice";
 import "./LoginModal.css";
 
 function LoginModal({ closeModal }) {
-  const { login } = useContext(AuthContext);
+  const dispatch = useDispatch();
+  const loginError = useSelector((state) => state.auth.error);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false); // 로그인/회원가입 모드 상태
+  const [isRegistering, setIsRegistering] = useState(false);
   const modalRef = useRef(null);
 
   // 외부 클릭으로 모달 닫기
@@ -25,20 +28,14 @@ function LoginModal({ closeModal }) {
   }, [closeModal]);
 
   const handleLogin = () => {
-    axios
-      .post("http://localhost:8080/api/auth/login", { username, password })
-      .then((response) => {
-        if (response.data.success) {
-          const token = response.data.data; // 응답에서 토큰 추출
-          login(token, { username });
-          closeModal();
-        } else {
-          alert("로그인에 실패했습니다.");
-        }
+    dispatch(loginUser({ username, password }))
+      .unwrap()
+      .then(() => {
+        closeModal();
       })
       .catch((error) => {
-        console.error("로그인 오류:", error);
         alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+        console.error("로그인 오류:", error);
       });
   };
 
@@ -48,24 +45,15 @@ function LoginModal({ closeModal }) {
       return;
     }
 
-    axios
-      .post("http://localhost:8080/api/users/register", {
-        username,
-        password,
-        email,
-        name,
-      })
-      .then((response) => {
-        if (response.data.success) {
-          alert("회원가입이 완료되었습니다. 로그인해 주세요.");
-          setIsRegistering(false); // 회원가입 후 로그인 모드로 전환
-        } else {
-          alert("회원가입에 실패했습니다.");
-        }
+    dispatch(registerUser({ username, password, email, name }))
+      .unwrap()
+      .then(() => {
+        alert("회원가입이 완료되었습니다. 로그인해 주세요.");
+        setIsRegistering(false);
       })
       .catch((error) => {
-        console.error("회원가입 오류:", error);
         alert("회원가입에 실패했습니다.");
+        console.error("회원가입 오류:", error);
       });
   };
 
@@ -126,6 +114,7 @@ function LoginModal({ closeModal }) {
         >
           {isRegistering ? "로그인 화면으로" : "회원가입"}
         </button>
+        {loginError && <p className="error-message">{loginError}</p>}
       </div>
     </div>
   );

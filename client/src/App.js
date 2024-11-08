@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./AuthContext"; // AuthProvider import
+import { Provider } from "react-redux";
+import store from "./store.js"; // Redux store import
 import Header from "./components/Header";
 import Main from "./components/Main";
 import Feed from "./components/Feed";
@@ -8,19 +9,18 @@ import MyFeed from "./components/MyFeed";
 import MyPage from "./components/MyPage";
 import UploadPage from "./components/UploadPage";
 import LoginModal from "./components/LoginModal";
-import Tabs from "./components/Tabs";
 
 function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   return (
-    <AuthProvider>
+    <Provider store={store}>
       <Router>
-        <Header setShowLoginModal={setShowLoginModal} /> {/* Header에 전달 */}
+        <Header setShowLoginModal={setShowLoginModal} />
         <Routes>
           <Route
             path="/"
-            element={<Main setShowLoginModal={setShowLoginModal} />} // Main에 전달
+            element={<Main setShowLoginModal={setShowLoginModal} />}
           />
           <Route path="/feed" element={<Feed />} />
           <Route
@@ -34,12 +34,11 @@ function App() {
             element={<LoginModal closeModal={() => setShowLoginModal(false)} />}
           />
         </Routes>
-        {/* Modal 표시 조건을 위한 코드 */}
         {showLoginModal && (
           <LoginModal closeModal={() => setShowLoginModal(false)} />
         )}
       </Router>
-    </AuthProvider>
+    </Provider>
   );
 }
 

@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
-import { AuthContext } from "../AuthContext";
+import React from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 function Tabs({ setShowLoginModal }) {
-  const { isLoggedIn } = useContext(AuthContext);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // Redux에서 로그인 상태 가져오기
   const navigate = useNavigate();
 
   const handleUploadClick = () => {

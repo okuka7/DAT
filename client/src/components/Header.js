@@ -1,11 +1,11 @@
-import React, { useContext } from "react";
+import React from "react";
+import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../AuthContext";
 import { FaUser } from "react-icons/fa";
 import "./Header.css";
 
 function Header({ setShowLoginModal }) {
-  const { isLoggedIn } = useContext(AuthContext);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const navigate = useNavigate();
 
   const handleIconClick = () => {

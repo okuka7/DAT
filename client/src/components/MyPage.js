@@ -1,31 +1,27 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../AuthContext";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { logout, getCurrentUser } from "../slices/authSlice";
 import { useNavigate } from "react-router-dom";
-import API from "../api";
 import "./MyPage.css";
+import API from "../api"; // API 파일 경로를 확인하고 올바르게 입력하세요
 
 function MyPage() {
-  const { isLoggedIn, user, logout } = useContext(AuthContext); // user 상태를 가져옵니다.
-  const [userNickname, setUserNickname] = useState("User");
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const user = useSelector((state) => state.auth.user); // Redux에서 유저 정보 가져오기
+  const dispatch = useDispatch();
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isLoggedIn) {
-      // 이미 로그인한 경우
-      if (user) {
-        // user가 AuthProvider에서 설정된 경우
-        setUserNickname(user.username); // username 필드가 맞는지 확인 필요
-      } else {
-        // user가 null인 경우 (예: 로그인 후 상태가 변경된 경우)
-        console.error("User information is not available.");
-        logout();
-        navigate("/login");
-      }
-    } else {
-      navigate("/");
+    if (isLoggedIn && !user) {
+      dispatch(getCurrentUser())
+        .unwrap()
+        .catch(() => {
+          dispatch(logout());
+          navigate("/login");
+        });
     }
-  }, [isLoggedIn, user, navigate, logout]);
+  }, [isLoggedIn, user, dispatch, navigate]);
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;
@@ -44,7 +40,7 @@ function MyPage() {
       })
         .then(() => {
           alert("Your account has been deleted.");
-          logout();
+          dispatch(logout());
           navigate("/");
         })
         .catch((error) => {
@@ -55,14 +51,13 @@ function MyPage() {
   };
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate("/");
   };
 
   return (
     <div className="mypage-container">
-      <p className="greeting">Hi {userNickname}</p>{" "}
-      {/* 로그인한 유저의 username 표시 */}
+      <p className="greeting">Hi {user?.username || "User"}</p>
       <button className="logout-button" onClick={handleLogout}>
         Logout
       </button>

@@ -1,11 +1,11 @@
-import React, { useState, useContext, useEffect } from "react";
-import { AuthContext } from "../AuthContext";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import API from "../api";
 import Tabs from "./Tabs";
 import "./MyFeed.css";
 
 function MyFeed({ setShowLoginModal }) {
-  const { isLoggedIn } = useContext(AuthContext);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // Redux에서 로그인 상태 가져오기
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {

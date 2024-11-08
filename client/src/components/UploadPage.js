@@ -1,10 +1,10 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../AuthContext"; // AuthContext import
+import React, { useState } from "react";
+import { useSelector } from "react-redux"; // Redux에서 useSelector 가져오기
 import API from "../api"; // API 인스턴스 import
 import "./UploadPage.css";
 
 function UploadPage() {
-  const { isLoggedIn } = useContext(AuthContext); // AuthContext에서 로그인 상태 확인
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // Redux에서 로그인 상태 가져오기
   const [productName, setProductName] = useState("");
   const [status, setStatus] = useState("글");
   const [description, setDescription] = useState("");
@@ -37,8 +37,7 @@ function UploadPage() {
     formData.append("status", status);
     formData.append("description", description);
 
-    // 사진 파일들을 FormData에 추가
-    photoFiles.forEach((file, index) => {
+    photoFiles.forEach((file) => {
       formData.append("photos", file);
     });
 

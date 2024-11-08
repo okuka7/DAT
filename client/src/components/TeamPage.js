@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from "react";
-import API from "../api"; // API 인스턴스 import
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchTeamInfo } from "../slices/teamSlice"; // fetchTeamInfo 액션 import
 import "./TeamPage.css";
 
 function TeamPage() {
-  const [teamInfo, setTeamInfo] = useState(null);
+  const dispatch = useDispatch();
+  const { teamInfo, loading, error } = useSelector((state) => state.team);
 
   useEffect(() => {
-    // Spring Boot API에서 팀 정보 가져오기
-    API.get("/team") // 팀 정보를 제공하는 Spring Boot API 엔드포인트
-      .then((response) => {
-        setTeamInfo(response.data);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch team information:", error);
-      });
-  }, []);
+    dispatch(fetchTeamInfo());
+  }, [dispatch]);
 
   return (
     <div className="team-page-container">
       <h1>Team Introduction</h1>
-      {teamInfo ? (
+      {loading && <p>Loading team information...</p>}
+      {error && <p>Error fetching team information: {error}</p>}
+      {teamInfo && (
         <div>
           <h2>{teamInfo.name}</h2>
           <p>{teamInfo.description}</p>
@@ -31,8 +28,6 @@ function TeamPage() {
             ))}
           </ul>
         </div>
-      ) : (
-        <p>Loading team information...</p>
       )}
     </div>
   );

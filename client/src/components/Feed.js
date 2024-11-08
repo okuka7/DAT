@@ -1,37 +1,43 @@
-import React, { useState, useEffect } from "react";
-import API from "../api"; // api.js의 API 인스턴스를 import
+// src/components/Feed.js
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchPosts } from "../slices/postSlice";
 import "./Feed.css";
 
 function Feed() {
-  const [posts, setPosts] = useState([]);
+  const dispatch = useDispatch();
+  const posts = useSelector((state) => state.posts.posts);
+  const postStatus = useSelector((state) => state.posts.status);
+  const error = useSelector((state) => state.posts.error);
 
   useEffect(() => {
-    // Spring Boot API에서 데이터 가져오기
-    API.get("/posts") // 기본 URL이 이미 설정되었으므로 "/posts"만 추가
-      .then((response) => {
-        setPosts(response.data); // 서버에서 받은 데이터를 상태로 설정
-      })
-      .catch((error) => {
-        console.error("Failed to fetch posts:", error);
-      });
-  }, []);
+    if (postStatus === "idle") {
+      dispatch(fetchPosts());
+    }
+  }, [postStatus, dispatch]);
 
-  return (
-    <div className="feed-container">
-      {posts.map((post) => (
-        <div key={post.id} className="post-card feed">
-          <img
-            src={post.imageUrl}
-            alt={`Post ${post.id}`}
-            className="post-image"
-          />
-          <div className="post-content">
-            <p>{post.content}</p>
-          </div>
+  let content;
+
+  if (postStatus === "loading") {
+    content = <p>Loading posts...</p>;
+  } else if (postStatus === "succeeded") {
+    content = posts.map((post) => (
+      <div key={post.id} className="post-card feed">
+        <img
+          src={post.imageUrl}
+          alt={`Post ${post.id}`}
+          className="post-image"
+        />
+        <div className="post-content">
+          <p>{post.content}</p>
         </div>
-      ))}
-    </div>
-  );
+      </div>
+    ));
+  } else if (postStatus === "failed") {
+    content = <p>{error}</p>;
+  }
+
+  return <div className="feed-container">{content}</div>;
 }
 
 export default Feed;
