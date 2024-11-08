@@ -46,6 +46,7 @@ public class UserController {
     }
     @GetMapping("/getLoginUser")
     public ResponseEntity<ApiResponse<User>> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        System.out.println("getCurrentUser called");
         if (userDetails != null) {
             Optional<User> user = userService.getUserByUsername(userDetails.getUsername());
             return user.map(value -> ResponseEntity.ok(new ApiResponse<>(true, "사용자 정보 조회 성공", value)))
@@ -56,6 +57,7 @@ public class UserController {
 
     @GetMapping("/status")
     public ResponseEntity<ApiResponse<String>> getStatus(@AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails != null) {
             return ResponseEntity.ok(new ApiResponse<>(true, "사용자가 로그인된 상태입니다.", "active"));
         }

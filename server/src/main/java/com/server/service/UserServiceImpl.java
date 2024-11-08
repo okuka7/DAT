@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> getUserByUsername(String username) {
+        System.out.println("Fetched user from service: " + username);
         return userRepository.findByUsername(username); // findByUsername 메서드가 UserRepository에 있어야 합니다.
     }
 
