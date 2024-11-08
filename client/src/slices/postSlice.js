@@ -1,35 +1,36 @@
-// src/slices/postSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import API from "../api";
+import axios from "axios";
 
-// 비동기 작업으로 posts 데이터를 가져오는 함수
-export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
-  const response = await API.get("/posts");
-  return response.data;
-});
+// 최신글 데이터를 가져오는 비동기 액션
+export const getLatestPosts = createAsyncThunk(
+  "posts/getLatestPosts",
+  async () => {
+    const response = await axios.get("http://localhost:8080/api/posts/latest");
+    return response.data;
+  }
+);
 
-const postSlice = createSlice({
+const postsSlice = createSlice({
   name: "posts",
   initialState: {
-    posts: [],
-    status: "idle", // "idle" | "loading" | "succeeded" | "failed"
+    latestPosts: [],
+    status: "idle",
     error: null,
   },
-  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchPosts.pending, (state) => {
+      .addCase(getLatestPosts.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchPosts.fulfilled, (state, action) => {
+      .addCase(getLatestPosts.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.posts = action.payload;
+        state.latestPosts = action.payload;
       })
-      .addCase(fetchPosts.rejected, (state, action) => {
+      .addCase(getLatestPosts.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });
   },
 });
 
-export default postSlice.reducer;
+export default postsSlice.reducer;

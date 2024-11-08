@@ -1,13 +1,19 @@
 // src/components/Main.js
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import API from "../api";
+import { useSelector, useDispatch } from "react-redux";
+import { getStatus } from "../slices/authSlice";
+import { getLatestPosts } from "../slices/postSlice";
 import Header from "./Header";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
 
 function Main({ setShowLoginModal }) {
-  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // Redux에서 isLoggedIn 상태 가져오기
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const statusData = useSelector((state) => state.auth.statusData);
+  const latestPosts = useSelector((state) => state.posts.latestPosts);
+  const statusState = useSelector((state) => state.auth.statusState);
+  const postsStatus = useSelector((state) => state.posts.status);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isCheckingTime, setIsCheckingTime] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState("퇴근한 상태");
@@ -15,22 +21,28 @@ function Main({ setShowLoginModal }) {
   const [resettableTime, setResettableTime] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
-  const latestPosts = [
-    { id: 1, title: "최신 글 제목 1", content: "최신 글 내용 1" },
-    { id: 2, title: "최신 글 제목 2", content: "최신 글 내용 2" },
-    { id: 3, title: "최신 글 제목 3", content: "최신 글 내용 3" },
-  ];
-
+  // 출석 상태 가져오기
   useEffect(() => {
-    if (isLoggedIn) {
-      API.get("/users/status")
-        .then((response) => {
-          setAccumulatedTime(response.data.accumulatedTime);
-        })
-        .catch((error) => console.error(error));
+    if (isLoggedIn && statusState === "idle") {
+      dispatch(getStatus());
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, statusState, dispatch]);
 
+  // 출석 상태가 변경될 때 누적 시간을 업데이트
+  useEffect(() => {
+    if (statusData) {
+      setAccumulatedTime(statusData.accumulatedTime);
+    }
+  }, [statusData]);
+
+  // 최신 글 데이터 가져오기
+  useEffect(() => {
+    if (postsStatus === "idle") {
+      dispatch(getLatestPosts());
+    }
+  }, [postsStatus, dispatch]);
+
+  // 출근 시작
   const handleStart = () => {
     setAttendanceStatus("출근한 상태");
     setIsCheckingTime(true);
@@ -39,21 +51,14 @@ function Main({ setShowLoginModal }) {
       setResettableTime((prev) => prev + 1000);
     }, 1000);
     setIntervalId(id);
-
-    API.post("/attendance/start")
-      .then((response) => console.log(response.data))
-      .catch((error) => console.error(error));
   };
 
+  // 출근 정지 및 재개
   const handlePauseOrResume = () => {
     if (isCheckingTime) {
       clearInterval(intervalId);
       setIsCheckingTime(false);
       setAttendanceStatus("정지한 상태");
-
-      API.post("/attendance/pause")
-        .then((response) => console.log(response.data))
-        .catch((error) => console.error(error));
     } else {
       setAttendanceStatus("출근한 상태");
       const id = setInterval(() => {
@@ -61,13 +66,10 @@ function Main({ setShowLoginModal }) {
       }, 1000);
       setIntervalId(id);
       setIsCheckingTime(true);
-
-      API.post("/attendance/resume")
-        .then((response) => console.log(response.data))
-        .catch((error) => console.error(error));
     }
   };
 
+  // 퇴근 처리
   const handleEnd = () => {
     clearInterval(intervalId);
     setIsCheckingTime(false);
@@ -75,12 +77,9 @@ function Main({ setShowLoginModal }) {
 
     setAccumulatedTime((prev) => prev + resettableTime);
     setResettableTime(0);
-
-    API.post("/attendance/end", { resettableTime })
-      .then((response) => console.log(response.data))
-      .catch((error) => console.error(error));
   };
 
+  // 시간을 일/시간/분으로 포맷
   const formatTime = (milliseconds) => {
     const totalMinutes = Math.floor(milliseconds / 60000);
     const days = Math.floor(totalMinutes / 1440);
@@ -89,6 +88,7 @@ function Main({ setShowLoginModal }) {
     return `${days}일 ${hours}시간 ${minutes}분`;
   };
 
+  // 누적 시간을 시간/분으로 포맷
   const formatTotalHoursAndMinutes = (milliseconds) => {
     const totalMinutes = Math.floor(milliseconds / 60000);
     const hours = Math.floor(totalMinutes / 60);
@@ -99,7 +99,6 @@ function Main({ setShowLoginModal }) {
   return (
     <div className="main-container">
       <Header setShowLoginModal={setShowLoginModal} />
-
       <section className="latest-posts">
         <h2>최신 글</h2>
         {latestPosts.map((post) => (

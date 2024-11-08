@@ -1,43 +1,35 @@
-// src/components/Feed.js
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPosts } from "../slices/postSlice";
+import { getLatestPosts } from "../slices/postSlice"; // 최신글 데이터를 위한 액션 수정
 import "./Feed.css";
 
 function Feed() {
   const dispatch = useDispatch();
-  const posts = useSelector((state) => state.posts.posts);
-  const postStatus = useSelector((state) => state.posts.status);
-  const error = useSelector((state) => state.posts.error);
+  const latestPosts = useSelector((state) => state.posts.latestPosts);
+  const postsStatus = useSelector((state) => state.posts.status);
 
   useEffect(() => {
-    if (postStatus === "idle") {
-      dispatch(fetchPosts());
+    if (postsStatus === "idle") {
+      dispatch(getLatestPosts()); // 최신글 데이터를 가져오기 위한 액션 호출
     }
-  }, [postStatus, dispatch]);
+  }, [postsStatus, dispatch]);
 
-  let content;
-
-  if (postStatus === "loading") {
-    content = <p>Loading posts...</p>;
-  } else if (postStatus === "succeeded") {
-    content = posts.map((post) => (
-      <div key={post.id} className="post-card feed">
-        <img
-          src={post.imageUrl}
-          alt={`Post ${post.id}`}
-          className="post-image"
-        />
-        <div className="post-content">
-          <p>{post.content}</p>
+  return (
+    <div className="feed-container">
+      {latestPosts.map((post) => (
+        <div key={post.id} className="post-card">
+          <img
+            src={post.imageUrl}
+            alt={`Post ${post.id}`}
+            className="post-image"
+          />
+          <div className="post-content">
+            <p>{post.content}</p>
+          </div>
         </div>
-      </div>
-    ));
-  } else if (postStatus === "failed") {
-    content = <p>{error}</p>;
-  }
-
-  return <div className="feed-container">{content}</div>;
+      ))}
+    </div>
+  );
 }
 
 export default Feed;
