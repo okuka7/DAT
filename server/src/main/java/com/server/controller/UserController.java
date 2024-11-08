@@ -54,4 +54,13 @@ public class UserController {
         return ResponseEntity.status(401).body(new ApiResponse<>(false, "로그인되지 않았습니다.", null));
     }
 
+    @GetMapping("/status")
+    public ResponseEntity<ApiResponse<String>> getStatus(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            return ResponseEntity.ok(new ApiResponse<>(true, "사용자가 로그인된 상태입니다.", "active"));
+        }
+        return ResponseEntity.status(401).body(new ApiResponse<>(false, "사용자가 로그인되지 않았습니다.", "inactive"));
+    }
+
+
 }
