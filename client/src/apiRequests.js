@@ -36,7 +36,7 @@ export const getCurrentUserRequest = async () => {
         },
       }
     );
-    return response.data.data; // 사용자 정보 반환
+    return response.data; // 사용자 정보 반환
   } else {
     throw new Error("토큰 없음");
   }

@@ -12,7 +12,6 @@ function LoginModal({ closeModal }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const modalRef = useRef(null);
 
@@ -45,7 +44,7 @@ function LoginModal({ closeModal }) {
       return;
     }
 
-    dispatch(registerUser({ username, password, email, name }))
+    dispatch(registerUser({ username, password, email }))
       .unwrap()
       .then(() => {
         alert("회원가입이 완료되었습니다. 로그인해 주세요.");
@@ -70,13 +69,6 @@ function LoginModal({ closeModal }) {
         />
         {isRegistering && (
           <>
-            <input
-              type="text"
-              placeholder="이름"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="login-input"
-            />
             <input
               type="email"
               placeholder="이메일"

@@ -11,7 +11,8 @@ import {
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ username, password }) => {
-    return await loginRequest(username, password); // loginRequest에서 토큰을 반환받음
+    const token = await loginRequest(username, password); // 토큰 반환
+    return { token, user: { username } }; // user 객체로 반환
   }
 );
 
@@ -24,10 +25,13 @@ export const registerUser = createAsyncThunk(
 );
 
 // 비동기 로그인 사용자 정보 액션
+// getCurrentUser.js에서
 export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
   async () => {
-    return await getCurrentUserRequest(); // 현재 사용자 정보 요청 함수
+    const user = await getCurrentUserRequest(); // 사용자 정보 요청
+    console.log("Fetched user:", user); // 응답 데이터 로그
+    return { username: user.username }; // { username: "9997" } 형태로 반환
   }
 );
 
@@ -66,8 +70,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoggedIn = true;
-        state.token = action.payload; // loginRequest에서 받은 토큰
-        state.user = action.meta.arg.username; // 로그인 요청에 사용한 사용자 이름 설정
+        state.token = action.payload.token; // loginRequest에서 받은 토큰
+        state.user = action.payload.user; // user 객체 업데이트
         state.error = null;
         state.loginStatus = "succeeded";
       })
@@ -92,15 +96,19 @@ const authSlice = createSlice({
       // 사용자 정보 조회 상태
       .addCase(getCurrentUser.pending, (state) => {
         state.userStatus = "loading";
+        console.log("getCurrentUser pending");
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
+        console.log("User data fetched:", action.payload);
         state.isLoggedIn = true;
-        state.user = action.payload; // 사용자 정보
+        state.user = action.payload; // 사용자 정보 업데이트
         state.userStatus = "succeeded";
+        console.log("getCurrentUser fulfilled:", action.payload);
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.error = action.payload || action.error.message;
         state.userStatus = "failed";
+        console.error("getCurrentUser rejected:", action.error.message);
       })
 
       // 상태 조회 (getStatus) 설정

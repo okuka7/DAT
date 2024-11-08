@@ -1,3 +1,4 @@
+// src/components/MyPage.js
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, getCurrentUser } from "../slices/authSlice";
@@ -13,10 +14,14 @@ function MyPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 로그인했지만 사용자 정보가 없을 때 getCurrentUser 호출
     if (isLoggedIn && !user) {
       dispatch(getCurrentUser())
         .unwrap()
-        .catch(() => {
+        .then((res) => {
+          console.log("getCurrentUser success:", res); // 응답 데이터 확인
+        })
+        .catch((error) => {
           dispatch(logout());
           navigate("/login");
         });
@@ -57,7 +62,7 @@ function MyPage() {
 
   return (
     <div className="mypage-container">
-      <p className="greeting">Hi {user?.username || "User"}</p>
+      <p className="greeting">Hi {user ? user.username : "User"}</p>
       <button className="logout-button" onClick={handleLogout}>
         Logout
       </button>
