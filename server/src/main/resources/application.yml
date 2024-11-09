@@ -12,4 +12,5 @@ spring:
       hibernate:
         format_sql: true
 
-
+file:
+  upload-dir: /Users/yuntaegu/Desktop/DAT_Photo

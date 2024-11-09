@@ -1,8 +1,10 @@
 package com.server.service;
 
 import com.server.dto.UserRegistrationDto;
+import com.server.entity.Post;
 import com.server.entity.User;
 import com.server.mapper.UserMapper;
+import com.server.repository.PostRepository;
 import com.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,6 +22,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PostRepository postRepository;
 
     @Override
     public User registerUser(UserRegistrationDto userDto) {
@@ -63,5 +68,15 @@ public class UserServiceImpl implements UserService {
     public Optional<User> getUserByUsername(String username) {
         System.out.println("Fetched user from service: " + username);
         return userRepository.findByUsername(username); // findByUsername 메서드가 UserRepository에 있어야 합니다.
+    }
+
+    @Override
+    public Post createPost(Long userId, Post post) {
+        // 사용자를 조회하고, 해당 사용자를 글 작성자로 설정
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        post.setAuthor(user); // 작성자 설정
+        return postRepository.save(post); // 글 저장
     }
 }
