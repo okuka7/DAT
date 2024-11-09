@@ -1,91 +1,92 @@
 package com.server;
 
-import com.server.controller.PostController;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.server.ServerApplication;
+import com.server.dto.PostDTO;
 import com.server.entity.Post;
 import com.server.entity.User;
 import com.server.service.FileUploadService;
 import com.server.service.PostService;
 import com.server.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = ServerApplication.class)
+@AutoConfigureMockMvc
 public class PostControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
     private PostService postService;
 
-    @Mock
+    @MockBean
     private UserService userService;
 
-    @Mock
+    @MockBean
     private FileUploadService fileUploadService;
 
-    @InjectMocks
-    private PostController postController;
-
-    private MockMvc mockMvc;
+    @Autowired
     private ObjectMapper objectMapper;
 
     private User mockUser;
+    private PostDTO mockPostDTO;
 
     @BeforeEach
-    public void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(postController).build();
-        objectMapper = new ObjectMapper();
-
-        // Mock user setup
+    void setUp() {
+        // 설정된 모의 사용자 및 게시글 데이터
         mockUser = new User();
         mockUser.setId(1L);
         mockUser.setUsername("testuser");
+
+        mockPostDTO = new PostDTO();
+        mockPostDTO.setTitle("Test Post");
+        mockPostDTO.setContent("Test content");
+
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(mockUser));
     }
 
     @Test
-    public void testCreatePost() throws Exception {
-        // Given
-        Post post = new Post();
-        post.setTitle("Test Post");
-        post.setContent("Test content");
+    @WithMockUser(username = "testuser", roles = {"SILVER"})
+    void testCreatePost() throws Exception {
+        // Mock 설정
+        when(postService.createPost(anyLong(), any(Post.class))).thenReturn(mockPostDTO);
 
-        // Mock the behavior of userService and postService
-        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(mockUser));
-        when(postService.createPost(1L, post)).thenReturn(post);
-
-        // When & Then
-        mockMvc.perform(post("/api/posts")
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
+        mockMvc.perform(multipart("/api/posts")
+                        .file("image", new byte[]{}) // MockMultipartFile 사용
                         .param("title", "Test Post")
                         .param("content", "Test content")
-                        .header("Authorization", "Bearer testToken"))
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Test Post"))
-                .andExpect(jsonPath("$.content").value("Test content"))
-                .andExpect(jsonPath("$.author.username").value("testuser"));
+                .andExpect(jsonPath("$.content").value("Test content"));
     }
 
     @Test
+    @WithMockUser(username = "testuser", roles = {"SILVER"})
     public void testGetPost() throws Exception {
         // Given
-        Post post = new Post();
-        post.setTitle("Test Post");
-        post.setContent("Test content");
+        PostDTO postDTO = new PostDTO(1L, "Test Post", "Test content", 1L, "testuser", null, null, null);
 
-        when(postService.getPostById(1L)).thenReturn(Optional.of(post));
+        when(postService.getPostById(1L)).thenReturn(Optional.of(postDTO));
 
         // When & Then
         mockMvc.perform(get("/api/posts/{id}", 1L))
@@ -95,25 +96,24 @@ public class PostControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "testuser", roles = {"SILVER"})
     public void testUpdatePost() throws Exception {
         // Given
-        Post post = new Post();
-        post.setId(1L);
-        post.setTitle("Updated Post");
-        post.setContent("Updated content");
+        PostDTO updatedPostDTO = new PostDTO(1L, "Updated Post", "Updated content", 1L, "testuser", null, null, null);
 
-        when(postService.updatePost(1L, post)).thenReturn(post);
+        when(postService.updatePost(eq(1L), any(PostDTO.class))).thenReturn(updatedPostDTO);
 
         // When & Then
         mockMvc.perform(put("/api/posts/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(post)))
+                        .content(objectMapper.writeValueAsString(updatedPostDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Updated Post"))
                 .andExpect(jsonPath("$.content").value("Updated content"));
     }
 
     @Test
+    @WithMockUser(username = "testuser", roles = {"SILVER"})
     public void testDeletePost() throws Exception {
         // Given
         doNothing().when(postService).deletePost(1L);
@@ -121,5 +121,20 @@ public class PostControllerTest {
         // When & Then
         mockMvc.perform(delete("/api/posts/{id}", 1L))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testGetAllPosts() throws Exception {
+        // Given
+        PostDTO postDTO1 = new PostDTO(1L, "Post 1", "Content 1", 1L, "testuser", null, null, null);
+        PostDTO postDTO2 = new PostDTO(2L, "Post 2", "Content 2", 1L, "testuser", null, null, null);
+
+        when(postService.getAllPosts()).thenReturn(List.of(postDTO1, postDTO2));
+
+        // When & Then
+        mockMvc.perform(get("/api/posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Post 1"))
+                .andExpect(jsonPath("$[1].title").value("Post 2"));
     }
 }

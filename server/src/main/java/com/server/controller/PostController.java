@@ -1,5 +1,6 @@
 package com.server.controller;
 
+import com.server.dto.PostDTO;
 import com.server.entity.Post;
 import com.server.entity.User;
 import com.server.service.FileUploadService;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -28,10 +30,10 @@ public class PostController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestParam("title") String title,
-                                           @RequestParam("content") String content,
-                                           @RequestParam(value = "image", required = false) MultipartFile image,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<PostDTO> createPost(@RequestParam("title") String title,
+                                              @RequestParam("content") String content,
+                                              @RequestParam(value = "image", required = false) MultipartFile image,
+                                              @AuthenticationPrincipal UserDetails userDetails) {
         try {
             // 현재 로그인한 사용자 정보 조회
             String username = userDetails.getUsername();
@@ -55,7 +57,7 @@ public class PostController {
             post.setImageUrl(imageUrl); // 이미지 URL 설정
 
             // `userId`를 넘겨서 글 작성
-            Post newPost = postService.createPost(author.getId(), post);
+            PostDTO newPost = postService.createPost(author.getId(), post);
 
             return ResponseEntity.ok(newPost);
         } catch (Exception e) {
@@ -65,14 +67,14 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Post> getPost(@PathVariable Long id) {
-        Optional<Post> post = postService.getPostById(id);
+    public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
+        Optional<PostDTO> post = postService.getPostById(id);
         return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post updatedPost) {
-        Post post = postService.updatePost(id, updatedPost);
+    public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody PostDTO updatedPost) {
+        PostDTO post = postService.updatePost(id, updatedPost);
         return ResponseEntity.ok(post);
     }
 
@@ -80,5 +82,11 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostDTO>> getAllPosts() {
+        List<PostDTO> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
     }
 }
