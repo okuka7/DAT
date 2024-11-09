@@ -1,92 +1,98 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux"; // Redux에서 useSelector 가져오기
-import API from "../api"; // API 인스턴스 import
+import { useSelector } from "react-redux";
+import axios from "axios";
 import "./UploadPage.css";
 
 function UploadPage() {
-  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // Redux에서 로그인 상태 가져오기
-  const [productName, setProductName] = useState("");
-  const [status, setStatus] = useState("글");
-  const [description, setDescription] = useState("");
-  const [photos, setPhotos] = useState([]);
-  const [photoFiles, setPhotoFiles] = useState([]);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const [title, setTitle] = useState("");
+  const [status, setStatus] = useState("공개");
+  const [content, setContent] = useState("");
+  const [images, setImages] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
 
-  const handlePhotoUpload = (e) => {
+  const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length + photos.length > 5) {
+    if (files.length + images.length > 5) {
       alert("최대 5장까지 업로드 가능합니다.");
       return;
     }
 
-    const newPhotos = files.slice(0, 5 - photos.length);
-    setPhotos((prevPhotos) => [
-      ...prevPhotos,
-      ...newPhotos.map((file) => URL.createObjectURL(file)),
+    const newImages = files.slice(0, 5 - images.length);
+    setImages((prevImages) => [
+      ...prevImages,
+      ...newImages.map((file) => URL.createObjectURL(file)),
     ]);
-    setPhotoFiles((prevFiles) => [...prevFiles, ...newPhotos]);
+    setImageFiles((prevFiles) => [...prevFiles, ...newImages]);
   };
 
-  const handleProductUpload = async () => {
+  const handlePostUpload = async () => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("name", productName);
+    formData.append("title", title);
     formData.append("status", status);
-    formData.append("description", description);
+    formData.append("content", content);
 
-    photoFiles.forEach((file) => {
-      formData.append("photos", file);
+    imageFiles.forEach((file) => {
+      formData.append("images", file);
     });
 
     try {
-      await API.post("/products", formData, {
+      const token = localStorage.getItem("authToken");
+      await axios.post("http://localhost:8080/api/posts", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       });
-      alert("상품이 성공적으로 업로드되었습니다!");
+      alert("글이 성공적으로 업로드되었습니다!");
     } catch (error) {
-      console.error("상품 업로드에 실패했습니다.", error);
-      alert("상품 업로드에 실패했습니다.");
+      console.error("글 업로드에 실패했습니다.", error);
+      alert("글 업로드에 실패했습니다.");
     }
   };
 
   return (
     <div className="upload-page-container">
+      <div className="upload-header">
+        <h1>글 작성</h1>
+      </div>
+
       <div className="content-section">
-        <div className="photo-upload-section">
+        <div className="image-upload-section">
           <div className="preview-section">
-            {photos[0] && (
+            {images[0] && (
               <div className="main-preview">
                 <img
-                  src={photos[0]}
+                  src={images[0]}
                   alt="Main preview"
                   className="main-photo"
                 />
               </div>
             )}
             <div className="thumbnail-preview">
-              {photos.slice(1).map((photo, index) => (
+              {images.slice(1).map((image, index) => (
                 <img
                   key={index}
-                  src={photo}
+                  src={image}
                   alt={`Thumbnail ${index + 1}`}
                   className="thumbnail-photo"
                 />
               ))}
             </div>
           </div>
-          <label htmlFor="photo-upload" className="custom-upload-button">
-            사진 업로드
+          <label htmlFor="image-upload" className="upload-button">
+            이미지 업로드
           </label>
           <input
             type="file"
-            id="photo-upload"
-            className="photo-upload-input"
-            onChange={handlePhotoUpload}
+            id="image-upload"
+            className="image-upload-input"
+            onChange={handleImageUpload}
             multiple
             accept="image/*"
           />
@@ -97,31 +103,33 @@ function UploadPage() {
             <label>제목</label>
             <input
               type="text"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="블로그 글 제목"
             />
           </div>
 
           <div className="input-field">
-            <label>종류</label>
+            <label>공개 여부</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="글">글</option>
-              <option value="사진">사진</option>
+              <option value="공개">공개</option>
+              <option value="비공개">비공개</option>
             </select>
           </div>
         </div>
       </div>
 
-      <div className="description-section">
-        <label>상세 설명</label>
+      <div className="content-section">
+        <label>내용</label>
         <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="블로그 글 내용을 입력하세요..."
         />
       </div>
 
-      <button className="product-upload-button" onClick={handleProductUpload}>
-        글 올리기
+      <button className="post-upload-button" onClick={handlePostUpload}>
+        게시하기
       </button>
     </div>
   );

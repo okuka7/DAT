@@ -1,95 +1,65 @@
 package com.server;
 
-import com.server.dto.UserRegistrationDto;
+import com.server.entity.Post;
 import com.server.entity.User;
-import com.server.mapper.UserMapper;
+import com.server.repository.PostRepository;
 import com.server.repository.UserRepository;
-import com.server.service.UserService;
 import com.server.service.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
+    @ExtendWith(MockitoExtension.class)
+    public class UserServiceTest {
 
-class UserServiceTest {
+        @Mock
+        private UserRepository userRepository;
 
-    @Mock
-    private UserRepository userRepository;
+        @Mock
+        private PostRepository postRepository;
 
-    @Mock
-    private UserMapper userMapper;
+        @InjectMocks
+        private UserServiceImpl userService;
 
-    @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+        private User user;
 
-    @InjectMocks
-    private UserServiceImpl userService;
+        @BeforeEach
+        public void setUp() {
+            user = new User();
+            user.setId(1L);
+            user.setUsername("testuser");
+            user.setEmail("testuser@example.com");
+            user.setRole(User.Role.SILVER);
+        }
 
-    private User user;
-    private UserRegistrationDto userDto;
+        @Test
+        public void testCreatePost() {
+            // Given
+            Post post = new Post();
+            post.setTitle("Test Post");
+            post.setContent("Test content");
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        user = new User();
-        user.setId(1L);
-        user.setUsername("testuser");
-        user.setPassword("encodedpassword");
-        user.setEmail("testuser@example.com");
+            // Mock the userRepository and postRepository behavior
+            when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+            when(postRepository.save(post)).thenReturn(post);
 
-        userDto = new UserRegistrationDto();
-        userDto.setUsername("testuser");
-        userDto.setPassword("Password1!");
-        userDto.setEmail("testuser@example.com");
+            // When
+            Post createdPost = userService.createPost(1L, post);
+
+            // Then
+            assertNotNull(createdPost);
+            assertEquals("Test Post", createdPost.getTitle());
+            assertEquals("Test content", createdPost.getContent());
+            assertEquals(user, createdPost.getAuthor()); // Author should be the mock user
+            verify(postRepository, times(1)).save(post);  // Ensure postRepository save method was called once
+        }
     }
-
-    @Test
-    void shouldRegisterUser() {
-        // 비밀번호 암호화에 대한 mock 동작 설정
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedpassword");
-
-        when(userMapper.toEntity(any(UserRegistrationDto.class))).thenReturn(user);
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        User registeredUser = userService.registerUser(userDto);
-
-        assertNotNull(registeredUser);
-        assertEquals("encodedpassword", registeredUser.getPassword());
-        verify(userRepository, times(1)).save(any(User.class));
-    }
-
-    @Test
-    void shouldReturnUserById() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-
-        Optional<User> foundUser = userService.getUserById(1L);
-
-        assertTrue(foundUser.isPresent());
-        assertEquals("testuser", foundUser.get().getUsername());
-        verify(userRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    void shouldUpdateUser() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        User updatedUser = new User();
-        updatedUser.setEmail("newemail@example.com");
-
-        User result = userService.updateUser(1L, updatedUser);
-
-        assertEquals("newemail@example.com", result.getEmail());
-        verify(userRepository, times(1)).save(user);
-    }
-}

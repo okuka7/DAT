@@ -36,7 +36,7 @@ body {
 .upload-button {
   padding: 10px 20px;
   margin-left: 10px; /* Save 옆에 동일한 간격 */
-  background-color: #f8f8f8 !important; /* 탭과 동일한 배경색 */
+  background-color: grey !important; /* 탭과 동일한 배경색 */
   border: none;
   border-radius: 5px;
   cursor: pointer;
