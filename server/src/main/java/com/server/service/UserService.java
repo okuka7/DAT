@@ -2,13 +2,7 @@ package com.server.service;
 
 import com.server.dto.UserRegistrationDto;
 import com.server.entity.User;
-import com.server.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 import java.util.Optional;
-
 
 public interface UserService {
     User registerUser(UserRegistrationDto userDto);
@@ -19,4 +13,3 @@ public interface UserService {
 
     Optional<User> getUserByUsername(String username);
 }
-
