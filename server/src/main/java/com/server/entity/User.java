@@ -1,5 +1,6 @@
 package com.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +38,7 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "author")
+    @JsonIgnore
     private List<Post> posts;  // 작성한 글 목록
 
     @PrePersist
