@@ -29,8 +29,9 @@ export const registerUser = createAsyncThunk(
 export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
   async () => {
-    const user = await getCurrentUserRequest(); // 사용자 정보 요청
-    return { id: user.id, username: user.username }; // { id, username } 형태로 반환
+    const response = await getCurrentUserRequest(); // 사용자 정보 요청
+    const { id, username } = response.data; // response에서 id와 username 추출
+    return { id, username }; // { id, username } 형태로 반환
   }
 );
 
@@ -44,7 +45,7 @@ const authSlice = createSlice({
   initialState: {
     isLoggedIn: false,
     token: null,
-    user: null,
+    user: { id: null, username: null }, // user 초기값을 명확하게 설정
     error: null,
     loginStatus: "idle", // 로그인 상태
     registerStatus: "idle", // 회원가입 상태
@@ -56,7 +57,7 @@ const authSlice = createSlice({
     logout(state) {
       state.isLoggedIn = false;
       state.token = null;
-      state.user = null;
+      state.user = { id: null, username: null };
       state.loginStatus = "idle";
       localStorage.removeItem("authToken");
     },
@@ -68,6 +69,7 @@ const authSlice = createSlice({
         state.loginStatus = "loading";
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        console.log("loginUser fulfilled action.payload:", action.payload); // 디버깅용
         state.isLoggedIn = true;
         state.token = action.payload.token; // loginRequest에서 받은 토큰
         state.user = action.payload.user; // user 객체에 id와 username 설정
@@ -97,6 +99,7 @@ const authSlice = createSlice({
         state.userStatus = "loading";
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
+        console.log("getCurrentUser fulfilled action.payload:", action.payload); // 디버깅용
         state.isLoggedIn = true;
         state.user = action.payload; // 사용자 정보 업데이트
         state.userStatus = "succeeded";

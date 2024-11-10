@@ -35,7 +35,8 @@ export const getCurrentUserRequest = async () => {
         },
       }
     );
-    const { id, username } = response.data; // 필요한 데이터만 추출
+    console.log("API Response:", response.data);
+    const { id, username } = response.data.data; // 필요한 데이터만 추출
     return { id, username };
   } else {
     throw new Error("토큰 없음");
