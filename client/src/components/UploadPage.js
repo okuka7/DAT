@@ -38,7 +38,7 @@ function UploadPage() {
     formData.append("content", content);
 
     imageFiles.forEach((file) => {
-      formData.append("images", file);
+      formData.append("image", file);
     });
 
     try {
