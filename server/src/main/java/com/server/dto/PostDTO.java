@@ -21,6 +21,8 @@ public class PostDTO {
     // 기본 생성자
     public PostDTO() {}
 
+
+
     // Post 엔티티를 기반으로 PostDto 생성자 작성
     public PostDTO(Long id, String title, String content, Long authorId, String authorName,
                    LocalDateTime createdAt, LocalDateTime updatedAt, String imageUrl) {
@@ -33,4 +35,7 @@ public class PostDTO {
         this.updatedAt = updatedAt;
         this.imageUrl = imageUrl;
     }
+
+
+
 }

@@ -80,10 +80,32 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        Optional<User> userOpt = userService.getUserByUsername(username);
+
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.status(404).build();
+        }
+
+        User currentUser = userOpt.get();
+        Optional<PostDTO> postOpt = postService.getPostById(id);
+
+        if (!postOpt.isPresent()) {
+            return ResponseEntity.status(404).build();
+        }
+
+        PostDTO post = postOpt.get();
+
+        // 작성자가 일치하지 않으면 403 Forbidden 반환
+        if (!post.getAuthorId().equals(currentUser.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
+
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllPosts() {
