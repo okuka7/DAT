@@ -9,6 +9,7 @@ import MyFeed from "./components/MyFeed";
 import MyPage from "./components/MyPage";
 import UploadPage from "./components/UploadPage";
 import LoginModal from "./components/LoginModal";
+import PostDetailPage from "./components/PostDetailPage";
 
 function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -27,6 +28,7 @@ function App() {
             path="/myfeed"
             element={<MyFeed setShowLoginModal={setShowLoginModal} />}
           />
+          <Route path="/posts/:postId" element={<PostDetailPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/upload" element={<UploadPage />} />
           <Route

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // useNavigate 추가
 import API from "../api";
 import Tabs from "./Tabs";
 import "./MyFeed.css";
 
 function MyFeed({ setShowLoginModal }) {
   const [posts, setPosts] = useState([]);
+  const navigate = useNavigate(); // useNavigate 훅 사용
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -20,13 +22,21 @@ function MyFeed({ setShowLoginModal }) {
     fetchPosts();
   }, []);
 
+  const handlePostClick = (postId) => {
+    navigate(`/posts/${postId}`); // 게시물 클릭 시 상세 페이지로 이동
+  };
+
   return (
     <div className="myfeed-container">
-      <Tabs setShowLoginModal={setShowLoginModal} /> {/* Tabs에 함수 전달 */}
+      <Tabs setShowLoginModal={setShowLoginModal} />
       <div className="feed-container">
         {posts.length > 0 ? (
           posts.map((post) => (
-            <div key={post.id} className="post-card">
+            <div
+              key={post.id}
+              className="post-card"
+              onClick={() => handlePostClick(post.id)} // 클릭 이벤트 추가
+            >
               <img
                 src={post.imageUrl}
                 alt={`Post ${post.id}`}
