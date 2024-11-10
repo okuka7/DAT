@@ -12,5 +12,8 @@ spring:
       hibernate:
         format_sql: true
 
+  web:
+    resources:
+      static-locations: file:/Users/yuntaegu/Desktop/DAT_Photo/
 file:
   upload-dir: /Users/yuntaegu/Desktop/DAT_Photo

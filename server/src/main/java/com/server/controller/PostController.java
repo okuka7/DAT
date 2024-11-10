@@ -47,6 +47,7 @@ public class PostController {
             String imageUrl = null;
             if (image != null) {
                 imageUrl = fileUploadService.uploadFile(image);
+                System.out.println("업로드된 이미지 URL: " + imageUrl);
             }
 
             // 글 작성

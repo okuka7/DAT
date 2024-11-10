@@ -7,6 +7,7 @@ import com.server.repository.PostRepository;
 import com.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,9 @@ public class PostService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional
     public PostDTO createPost(Long userId, Post post) {
+        System.out.println("Post imageUrl: " + post.getImageUrl()); // 이미지 URL 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

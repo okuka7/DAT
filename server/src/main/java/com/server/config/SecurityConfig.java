@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/users/register" , "api/posts").permitAll()  // 공개 경로
+                        .requestMatchers("/api/auth/**", "/api/users/register" , "api/posts","/uploads/**").permitAll()  // 공개 경로
                         .requestMatchers("/api/users/getLoginUser", "/api/users/profile", "/api/users/delete", "/api/users/status").authenticated()  // 인증 필요
                         .anyRequest().authenticated()
                 )
