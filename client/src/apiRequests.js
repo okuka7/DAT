@@ -1,4 +1,3 @@
-// src/apiRequests.js
 import axios from "axios";
 
 export const loginRequest = async (username, password) => {
@@ -36,7 +35,8 @@ export const getCurrentUserRequest = async () => {
         },
       }
     );
-    return response.data; // 사용자 정보 반환
+    const { id, username } = response.data; // 필요한 데이터만 추출
+    return { id, username };
   } else {
     throw new Error("토큰 없음");
   }

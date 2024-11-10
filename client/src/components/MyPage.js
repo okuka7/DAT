@@ -4,23 +4,21 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout, getCurrentUser } from "../slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import "./MyPage.css";
-import API from "../api"; // API 파일 경로를 확인하고 올바르게 입력하세요
+import API from "../api";
 
 function MyPage() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-  const user = useSelector((state) => state.auth.user); // Redux에서 유저 정보 가져오기
+  const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 로그인했지만 사용자 정보가 없을 때 getCurrentUser 호출
+    console.log("isLoggedIn:", isLoggedIn, "user:", user);
     if (isLoggedIn && !user) {
       dispatch(getCurrentUser())
         .unwrap()
-        .then((res) => {
-          console.log("getCurrentUser success:", res); // 응답 데이터 확인
-        })
+        .then((res) => console.log("getCurrentUser success:", res))
         .catch((error) => {
           dispatch(logout());
           navigate("/login");
@@ -76,7 +74,6 @@ function MyPage() {
       >
         Delete Account
       </button>
-      <footer className="mypage-footer"></footer>
     </div>
   );
 }

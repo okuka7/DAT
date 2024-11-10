@@ -24,6 +24,7 @@
 
 .post-content {
   margin-top: 20px;
+  position: relative;
 }
 
 .post-images {
@@ -55,4 +56,25 @@
   margin-top: 20px;
   line-height: 1.6;
   font-size: 1rem;
+}
+
+.post-actions {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.post-action-button {
+  font-size: 0.85rem;
+  color: gray;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.post-action-button:hover {
+  color: #333;
 }

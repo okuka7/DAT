@@ -52,8 +52,22 @@
   font-size: 1.2rem;
 }
 
+.post-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  margin-bottom: 20px;
+  width: 100%; /* 원하는 카드 너비로 조정 */
+}
+
 .post-content {
   padding: 10px;
+  flex-grow: 1;
 }
 
 .post-title {
@@ -65,4 +79,11 @@
 .post-preview {
   font-size: 0.9rem;
   color: #666;
+}
+
+.post-date {
+  font-size: 0.85rem;
+  color: gray;
+  text-align: right; /* 오른쪽 정렬 */
+  margin-top: auto; /* 카드 하단에 고정 */
 }

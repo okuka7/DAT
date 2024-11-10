@@ -12,7 +12,8 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ username, password }) => {
     const token = await loginRequest(username, password); // 토큰 반환
-    return { token, user: { username } }; // user 객체로 반환
+    const user = await getCurrentUserRequest(); // 로그인 후 사용자 정보 요청
+    return { token, user }; // user 객체에 id와 username 포함
   }
 );
 
@@ -25,13 +26,11 @@ export const registerUser = createAsyncThunk(
 );
 
 // 비동기 로그인 사용자 정보 액션
-// getCurrentUser.js에서
 export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
   async () => {
     const user = await getCurrentUserRequest(); // 사용자 정보 요청
-    console.log("Fetched user:", user); // 응답 데이터 로그
-    return { username: user.username }; // { username: "9997" } 형태로 반환
+    return { id: user.id, username: user.username }; // { id, username } 형태로 반환
   }
 );
 
@@ -71,7 +70,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoggedIn = true;
         state.token = action.payload.token; // loginRequest에서 받은 토큰
-        state.user = action.payload.user; // user 객체 업데이트
+        state.user = action.payload.user; // user 객체에 id와 username 설정
         state.error = null;
         state.loginStatus = "succeeded";
       })
@@ -96,19 +95,15 @@ const authSlice = createSlice({
       // 사용자 정보 조회 상태
       .addCase(getCurrentUser.pending, (state) => {
         state.userStatus = "loading";
-        console.log("getCurrentUser pending");
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        console.log("User data fetched:", action.payload);
         state.isLoggedIn = true;
         state.user = action.payload; // 사용자 정보 업데이트
         state.userStatus = "succeeded";
-        console.log("getCurrentUser fulfilled:", action.payload);
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.error = action.payload || action.error.message;
         state.userStatus = "failed";
-        console.error("getCurrentUser rejected:", action.error.message);
       })
 
       // 상태 조회 (getStatus) 설정
@@ -125,6 +120,9 @@ const authSlice = createSlice({
       });
   },
 });
+
+// 현재 로그인한 사용자의 ID를 가져오는 셀렉터
+export const selectCurrentUserId = (state) => state.auth.user?.id;
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;

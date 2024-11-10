@@ -1,29 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // useNavigate 추가
+import { useNavigate } from "react-router-dom";
 import API from "../api";
 import Tabs from "./Tabs";
 import "./MyFeed.css";
 
 function MyFeed({ setShowLoginModal }) {
   const [posts, setPosts] = useState([]);
-  const navigate = useNavigate(); // useNavigate 훅 사용
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const response = await API.get("/posts");
-        console.log("Fetched posts:", response.data); // 응답 로그
+        console.log("Fetched posts:", response.data);
         setPosts(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Failed to fetch posts:", error);
-        setPosts([]); // 오류 발생 시 빈 배열로 설정
+        setPosts([]);
       }
     };
     fetchPosts();
   }, []);
 
   const handlePostClick = (postId) => {
-    navigate(`/posts/${postId}`); // 게시물 클릭 시 상세 페이지로 이동
+    navigate(`/posts/${postId}`);
   };
 
   return (
@@ -35,7 +35,7 @@ function MyFeed({ setShowLoginModal }) {
             <div
               key={post.id}
               className="post-card"
-              onClick={() => handlePostClick(post.id)} // 클릭 이벤트 추가
+              onClick={() => handlePostClick(post.id)}
             >
               <img
                 src={post.imageUrl}
@@ -45,6 +45,16 @@ function MyFeed({ setShowLoginModal }) {
               <div className="post-content">
                 <h3 className="post-title">{post.title}</h3>
                 <p className="post-preview">{post.content}</p>
+                <p className="post-date">
+                  {new Date(post.createdAt)
+                    .toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })
+                    .replace(/\./g, " .")
+                    .replace(/ \.$/, "")}
+                </p>
               </div>
             </div>
           ))
