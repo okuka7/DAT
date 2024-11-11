@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchPosts, selectPostById, deletePost } from "../slices/postSlice.js";
+import { selectCurrentUserId } from "../slices/authSlice"; // 로그인 사용자 ID
 import "./PostDetailPage.css";
 
 function PostDetailPage() {
@@ -11,7 +12,7 @@ function PostDetailPage() {
 
   const post = useSelector((state) => selectPostById(state, Number(postId)));
   const postsStatus = useSelector((state) => state.posts.status);
-  const currentUserId = useSelector((state) => state.auth.user?.id);
+  const currentUserId = useSelector(selectCurrentUserId); // 로그인한 사용자 ID
 
   useEffect(() => {
     if (postsStatus === "idle") {
@@ -29,10 +30,6 @@ function PostDetailPage() {
         .catch((error) => console.error("Failed to delete post:", error));
     }
   };
-
-  if (postsStatus === "loading") {
-    return <p>Loading...</p>;
-  }
 
   if (!post) {
     return <p>게시물을 찾을 수 없습니다.</p>;
@@ -52,13 +49,9 @@ function PostDetailPage() {
             <img src={post.imageUrl} alt="Post main" className="post-image" />
           </div>
         )}
-        {/* HTML을 실제 HTML로 렌더링 */}
-        <div
-          className="post-text"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        <div dangerouslySetInnerHTML={{ __html: post.content }} />
         <div className="post-actions">
-          {currentUserId === post.authorId && (
+          {currentUserId === post.authorId && ( // 작성자와 로그인 사용자가 같을 때만 표시
             <>
               <button className="post-action-button">수정</button>
               <button className="post-action-button" onClick={handleDelete}>
