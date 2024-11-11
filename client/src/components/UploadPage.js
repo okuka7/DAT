@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import "./UploadPage.css";
@@ -10,6 +10,39 @@ function UploadPage() {
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+  const editorRef = useRef(null);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      $(editorRef.current).summernote({
+        height: 300,
+        focus: true,
+        lang: "ko-KR",
+        placeholder: "블로그 글 내용을 입력하세요...",
+        toolbar: [
+          ["style", ["style"]],
+          ["font", ["bold", "italic", "underline"]],
+          ["fontsize", ["fontsize"]],
+          ["color", ["color"]],
+          ["para", ["ul", "ol", "paragraph"]],
+          ["table", ["table"]],
+          ["insert", ["link", "picture", "video"]],
+          ["view", ["fullscreen", "codeview"]],
+        ],
+        callbacks: {
+          onChange: function (contents) {
+            setContent(contents);
+          },
+        },
+      });
+    }
+
+    return () => {
+      if (editorRef.current) {
+        $(editorRef.current).summernote("destroy");
+      }
+    };
+  }, []);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -35,7 +68,7 @@ function UploadPage() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("status", status);
-    formData.append("content", content);
+    formData.append("content", content); // summernote의 content
 
     imageFiles.forEach((file) => {
       formData.append("image", file);
@@ -121,11 +154,7 @@ function UploadPage() {
 
       <div className="content-section">
         <label>내용</label>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="블로그 글 내용을 입력하세요..."
-        />
+        <div ref={editorRef}></div>
       </div>
 
       <button className="post-upload-button" onClick={handlePostUpload}>

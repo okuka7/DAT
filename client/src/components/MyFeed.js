@@ -44,7 +44,11 @@ function MyFeed({ setShowLoginModal }) {
               />
               <div className="post-content">
                 <h3 className="post-title">{post.title}</h3>
-                <p className="post-preview">{post.content}</p>
+                {/* 미리보기 부분에 dangerouslySetInnerHTML 사용 */}
+                <p
+                  className="post-preview"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                ></p>
                 <p className="post-date">
                   {new Date(post.createdAt)
                     .toLocaleDateString("ko-KR", {
