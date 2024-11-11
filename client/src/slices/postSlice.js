@@ -4,24 +4,72 @@ import axios from "axios";
 // 최신 게시물 데이터를 가져오는 비동기 액션
 export const getLatestPosts = createAsyncThunk(
   "posts/getLatestPosts",
-  async () => {
-    const response = await axios.get("http://localhost:8080/api/posts/latest");
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8080/api/posts/latest"
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response.data || "Failed to fetch latest posts"
+      );
+    }
   }
 );
 
 // 모든 게시물 데이터를 가져오는 비동기 액션
-export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
-  const response = await axios.get("http://localhost:8080/api/posts");
-  return response.data;
-});
+export const fetchPosts = createAsyncThunk(
+  "posts/fetchPosts",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/posts");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data || "Failed to fetch posts");
+    }
+  }
+);
 
-// 게시물 삭제 비동기 액션 추가
+// 특정 게시물 데이터를 가져오는 비동기 액션
+export const fetchPostById = createAsyncThunk(
+  "posts/fetchPostById",
+  async (postId, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth?.token;
+      console.log("Token:", token); // 토큰 확인 로그
+
+      // headers 객체에서 토큰이 없으면 Authorization 헤더를 생략
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const response = await axios.get(
+        `http://localhost:8080/api/posts/${postId}`,
+        { headers }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Error details:", error);
+      return rejectWithValue(error.response?.data || "Failed to fetch post");
+    }
+  }
+);
+
+// 게시물 삭제 비동기 액션
 export const deletePost = createAsyncThunk(
   "posts/deletePost",
-  async (postId) => {
-    await axios.delete(`http://localhost:8080/api/posts/${postId}`);
-    return postId; // 삭제된 게시물의 ID 반환
+  async (postId, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token; // Redux 상태에서 토큰 가져오기
+      await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return postId;
+    } catch (error) {
+      return rejectWithValue(error.response.data || "Failed to delete post");
+    }
   }
 );
 
@@ -31,8 +79,10 @@ const postsSlice = createSlice({
     latestPosts: [],
     items: [],
     status: "idle",
+    postStatus: "idle", // 특정 게시물 상태 관리
     error: null,
   },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       // 최신 게시물 가져오기
@@ -45,7 +95,7 @@ const postsSlice = createSlice({
       })
       .addCase(getLatestPosts.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
       })
 
       // 모든 게시물 가져오기
@@ -58,22 +108,41 @@ const postsSlice = createSlice({
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
+      })
+
+      // 특정 게시물 가져오기
+      .addCase(fetchPostById.pending, (state) => {
+        state.postStatus = "loading";
+      })
+      .addCase(fetchPostById.fulfilled, (state, action) => {
+        state.postStatus = "succeeded";
+        const post = action.payload;
+        if (!state.items.some((p) => p.id === post.id)) {
+          state.items.push(post);
+        }
+      })
+      .addCase(fetchPostById.rejected, (state, action) => {
+        state.postStatus = "failed";
+        state.error = action.payload || action.error.message;
       })
 
       // 게시물 삭제
       .addCase(deletePost.fulfilled, (state, action) => {
         state.items = state.items.filter((post) => post.id !== action.payload);
+      })
+      .addCase(deletePost.rejected, (state, action) => {
+        state.error = action.payload || action.error.message;
       });
   },
 });
 
 // 특정 게시물 찾기 셀렉터
 export const selectPostById = (state, postId) => {
-  if (state.posts.items.length === 0) return null;
-  return state.posts.items.find((post) => post.id === postId);
+  return state.posts.items.find((post) => post.id === postId) || null;
 };
 
+// 모든 게시물 셀렉터
 export const selectAllPosts = (state) => state.posts.items;
 
 export default postsSlice.reducer;

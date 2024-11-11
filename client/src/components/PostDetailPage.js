@@ -1,35 +1,51 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPosts, selectPostById, deletePost } from "../slices/postSlice.js";
-import { selectCurrentUserId } from "../slices/authSlice"; // 로그인 사용자 ID
+import {
+  fetchPostById,
+  selectPostById,
+  deletePost,
+} from "../slices/postSlice.js";
+import { selectCurrentUserId } from "../slices/authSlice";
 import "./PostDetailPage.css";
 
 function PostDetailPage() {
   const { postId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   const post = useSelector((state) => selectPostById(state, Number(postId)));
-  const postsStatus = useSelector((state) => state.posts.status);
-  const currentUserId = useSelector(selectCurrentUserId); // 로그인한 사용자 ID
+  const currentUserId = useSelector(selectCurrentUserId);
 
   useEffect(() => {
-    if (postsStatus === "idle") {
-      dispatch(fetchPosts());
+    if (!post) {
+      dispatch(fetchPostById(postId))
+        .unwrap()
+        .then(() => setLoading(false))
+        .catch((error) => {
+          console.error("Failed to load post:", error);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-  }, [dispatch, postsStatus]);
+  }, [dispatch, postId, post]);
 
   const handleDelete = () => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
       dispatch(deletePost(postId))
         .then(() => {
           alert("게시물이 삭제되었습니다.");
-          navigate("/");
+          navigate("/myfeed");
         })
         .catch((error) => console.error("Failed to delete post:", error));
     }
   };
+
+  if (loading) {
+    return <p>로딩 중...</p>;
+  }
 
   if (!post) {
     return <p>게시물을 찾을 수 없습니다.</p>;
@@ -51,7 +67,7 @@ function PostDetailPage() {
         )}
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
         <div className="post-actions">
-          {currentUserId === post.authorId && ( // 작성자와 로그인 사용자가 같을 때만 표시
+          {currentUserId === post.authorId && (
             <>
               <button className="post-action-button">수정</button>
               <button className="post-action-button" onClick={handleDelete}>
