@@ -10,35 +10,56 @@ import {
 // 비동기 로그인 액션
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ username, password }) => {
-    const token = await loginRequest(username, password); // 토큰 반환
-    const user = await getCurrentUserRequest(); // 로그인 후 사용자 정보 요청
-    return { token, user }; // user 객체에 id와 username 포함
+  async ({ username, password }, { rejectWithValue }) => {
+    try {
+      const token = await loginRequest(username, password); // 토큰 반환
+      const user = await getCurrentUserRequest(); // 로그인 후 사용자 정보 요청
+      return { token, user }; // user 객체에 id와 username 포함
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to login");
+    }
   }
 );
 
 // 비동기 회원가입 액션
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
-  async (userData) => {
-    return await registerRequest(userData); // 회원가입 요청 함수
+  async (userData, { rejectWithValue }) => {
+    try {
+      return await registerRequest(userData); // 회원가입 요청 함수
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to register");
+    }
   }
 );
 
 // 비동기 로그인 사용자 정보 액션
 export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
-  async () => {
-    const response = await getCurrentUserRequest(); // 사용자 정보 요청
-    const { id, username } = response.data; // response에서 id와 username 추출
-    return { id, username }; // { id, username } 형태로 반환
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getCurrentUserRequest(); // 사용자 정보 요청
+      const { id, username } = response.data; // response에서 id와 username 추출
+      return { id, username }; // { id, username } 형태로 반환
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch current user"
+      );
+    }
   }
 );
 
 // 비동기 상태 조회 액션
-export const getStatus = createAsyncThunk("auth/getStatus", async () => {
-  return await getStatusRequest(); // 상태 조회 요청 함수
-});
+export const getStatus = createAsyncThunk(
+  "auth/getStatus",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getStatusRequest(); // 상태 조회 요청 함수
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to fetch status");
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: "auth",
@@ -77,7 +98,7 @@ const authSlice = createSlice({
         state.loginStatus = "succeeded";
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
         state.loginStatus = "failed";
       })
 
@@ -90,7 +111,7 @@ const authSlice = createSlice({
         state.registerStatus = "succeeded";
       })
       .addCase(registerUser.rejected, (state, action) => {
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
         state.registerStatus = "failed";
       })
 
@@ -126,6 +147,11 @@ const authSlice = createSlice({
 
 // 현재 로그인한 사용자의 ID를 가져오는 셀렉터
 export const selectCurrentUserId = (state) => state.auth.user?.id;
+
+// 상태 데이터와 상태 상태를 선택하는 셀렉터
+export const selectStatusData = (state) => state.auth.statusData;
+export const selectStatusState = (state) => state.auth.statusState;
+export const selectAuthError = (state) => state.auth.error;
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;

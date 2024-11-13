@@ -1,3 +1,5 @@
+/* src/components/Main.css */
+
 .main-container {
   padding: 20px;
   max-width: 800px;
@@ -41,4 +43,48 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.post-card {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+.post-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.post-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.post-content {
+  padding: 16px;
+  flex: 1;
+}
+
+.post-title {
+  margin: 0 0 10px 0;
+}
+
+.post-preview {
+  margin: 0 0 10px 0;
+}
+
+.post-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.no-posts-message {
+  text-align: center;
+  color: #666;
 }

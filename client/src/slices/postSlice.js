@@ -1,3 +1,4 @@
+// src/slices/postSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -12,7 +13,7 @@ export const getLatestPosts = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response.data || "Failed to fetch latest posts"
+        error.response?.data || "Failed to fetch latest posts"
       );
     }
   }
@@ -26,7 +27,7 @@ export const fetchPosts = createAsyncThunk(
       const response = await axios.get("http://localhost:8080/api/posts");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data || "Failed to fetch posts");
+      return rejectWithValue(error.response?.data || "Failed to fetch posts");
     }
   }
 );
@@ -60,7 +61,9 @@ export const deletePost = createAsyncThunk(
   "posts/deletePost",
   async (postId, { getState, rejectWithValue }) => {
     try {
-      const token = getState().auth.token; // Redux 상태에서 토큰 가져오기
+      const token = getState().auth?.token; // Redux 상태에서 토큰 가져오기
+      if (!token) throw new Error("User is not authenticated");
+
       await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -68,7 +71,7 @@ export const deletePost = createAsyncThunk(
       });
       return postId;
     } catch (error) {
-      return rejectWithValue(error.response.data || "Failed to delete post");
+      return rejectWithValue(error.response?.data || "Failed to delete post");
     }
   }
 );
@@ -144,5 +147,10 @@ export const selectPostById = (state, postId) => {
 
 // 모든 게시물 셀렉터
 export const selectAllPosts = (state) => state.posts.items;
+
+// 최신 게시물 셀렉터
+export const selectLatestPosts = (state) => state.posts.latestPosts;
+export const selectPostsStatus = (state) => state.posts.status;
+export const selectPostsError = (state) => state.posts.error;
 
 export default postsSlice.reducer;

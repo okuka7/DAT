@@ -1,18 +1,28 @@
 // src/components/Main.js
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { getStatus } from "../slices/authSlice";
-import { getLatestPosts } from "../slices/postSlice";
+import {
+  getStatus,
+  selectStatusData,
+  selectStatusState,
+} from "../slices/authSlice";
+import {
+  getLatestPosts,
+  selectLatestPosts,
+  selectPostsStatus,
+  selectPostsError,
+} from "../slices/postSlice.js";
 import Header from "./Header";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
 
 function Main({ setShowLoginModal }) {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-  const statusData = useSelector((state) => state.auth.statusData);
-  const latestPosts = useSelector((state) => state.posts.latestPosts);
-  const statusState = useSelector((state) => state.auth.statusState);
-  const postsStatus = useSelector((state) => state.posts.status);
+  const statusData = useSelector(selectStatusData);
+  const statusState = useSelector(selectStatusState);
+  const latestPosts = useSelector(selectLatestPosts);
+  const postsStatus = useSelector(selectPostsStatus);
+  const postsError = useSelector(selectPostsError);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isCheckingTime, setIsCheckingTime] = useState(false);
@@ -31,16 +41,14 @@ function Main({ setShowLoginModal }) {
   // 출석 상태가 변경될 때 누적 시간을 업데이트
   useEffect(() => {
     if (statusData) {
-      setAccumulatedTime(statusData.accumulatedTime);
+      setAccumulatedTime(statusData.accumulatedTime || 0);
     }
   }, [statusData]);
 
-  // 최신 글 데이터 가져오기
+  // 최신 글 데이터 가져오기 (컴포넌트가 마운트될 때마다 실행)
   useEffect(() => {
-    if (postsStatus === "idle") {
-      dispatch(getLatestPosts());
-    }
-  }, [postsStatus, dispatch]);
+    dispatch(getLatestPosts());
+  }, [dispatch]);
 
   // 출근 시작
   const handleStart = () => {
@@ -99,16 +107,51 @@ function Main({ setShowLoginModal }) {
   return (
     <div className="main-container">
       <Header setShowLoginModal={setShowLoginModal} />
+
       <section className="latest-posts">
         <h2>최신 글</h2>
-        {latestPosts.map((post) => (
-          <div key={post.id} className="post-card">
-            <h3>{post.title}</h3>
-            <p>{post.content}</p>
-          </div>
-        ))}
+        {postsStatus === "loading" && <p>로딩 중...</p>}
+        {postsStatus === "failed" && <p>Error: {postsError}</p>}
+        {postsStatus === "succeeded" && latestPosts.length > 0
+          ? latestPosts.map((post) => (
+              <div
+                key={post.id}
+                className="post-card"
+                onClick={() => navigate(`/posts/${post.id}`)}
+              >
+                {post.imageUrl && (
+                  <img
+                    src={post.imageUrl}
+                    alt={`Post ${post.id}`}
+                    className="post-image"
+                  />
+                )}
+                <div className="post-content">
+                  <h3 className="post-title">{post.title}</h3>
+                  {/* 미리보기 부분에 dangerouslySetInnerHTML 사용 */}
+                  <p
+                    className="post-preview"
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                  ></p>
+                  <p className="post-date">
+                    {new Date(post.createdAt)
+                      .toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })
+                      .replace(/\./g, " .")
+                      .replace(/ \.$/, "")}
+                  </p>
+                </div>
+              </div>
+            ))
+          : postsStatus === "succeeded" && (
+              <p className="no-posts-message">게시물이 없습니다</p>
+            )}
       </section>
 
+      {/* 출석 추적 섹션은 로그인된 사용자에게만 표시 */}
       {isLoggedIn && (
         <div className="attendance-container">
           <section className="attendance-tracker">
