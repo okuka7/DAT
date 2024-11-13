@@ -72,4 +72,9 @@ public class PostService {
                 post.getImageUrl()
         );
     }
+
+    public List<PostDTO> getLatestPosts(int limit) {
+        List<Post> posts = postRepository.findTop10ByOrderByCreatedAtDesc(); // 최신 10개 게시물 조회
+        return posts.stream().map(post -> new PostDTO(post)).collect(Collectors.toList());
+    }
 }

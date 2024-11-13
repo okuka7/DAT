@@ -1,5 +1,6 @@
 package com.server.dto;
 
+import com.server.entity.Post;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,6 +35,17 @@ public class PostDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.imageUrl = imageUrl;
+    }
+
+    public PostDTO(Post post) {
+        this.id = post.getId();
+        this.title = post.getTitle();
+        this.content = post.getContent();
+        this.authorId = post.getAuthor().getId();
+        this.imageUrl = post.getImageUrl();
+        this.createdAt = post.getCreatedAt();
+        this.updatedAt = post.getUpdatedAt();
+        // 필요에 따라 추가 필드 초기화
     }
 
 

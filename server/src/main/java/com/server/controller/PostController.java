@@ -112,4 +112,12 @@ public class PostController {
         List<PostDTO> posts = postService.getAllPosts();
         return ResponseEntity.ok(posts);
     }
+
+    @GetMapping("/latest")
+    public ResponseEntity<List<PostDTO>> getLatestPosts() {
+        List<PostDTO> latestPosts = postService.getLatestPosts(10); // 최신 10개 게시물
+        return ResponseEntity.ok(latestPosts);
+    }
+
+
 }
