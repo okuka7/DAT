@@ -1,4 +1,5 @@
 // src/components/Main.js
+
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -112,43 +113,48 @@ function Main({ setShowLoginModal }) {
         <h2>최신 글</h2>
         {postsStatus === "loading" && <p>로딩 중...</p>}
         {postsStatus === "failed" && <p>Error: {postsError}</p>}
-        {postsStatus === "succeeded" && latestPosts.length > 0
-          ? latestPosts.map((post) => (
-              <div
-                key={post.id}
-                className="post-card"
-                onClick={() => navigate(`/posts/${post.id}`)}
-              >
-                {post.imageUrl && (
-                  <img
-                    src={post.imageUrl}
-                    alt={`Post ${post.id}`}
-                    className="post-image"
-                  />
-                )}
-                <div className="post-content">
-                  <h3 className="post-title">{post.title}</h3>
-                  {/* 미리보기 부분에 dangerouslySetInnerHTML 사용 */}
-                  <p
-                    className="post-preview"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  ></p>
-                  <p className="post-date">
-                    {new Date(post.createdAt)
-                      .toLocaleDateString("ko-KR", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                      })
-                      .replace(/\./g, " .")
-                      .replace(/ \.$/, "")}
-                  </p>
-                </div>
+        {postsStatus === "succeeded" && latestPosts.length > 0 ? (
+          latestPosts.map((post) => (
+            <div
+              key={post.id}
+              className="latest-post-card" /* 클래스명 변경 */
+              onClick={() => navigate(`/posts/${post.id}`)}
+            >
+              {post.imageUrl && (
+                <img
+                  src={post.imageUrl}
+                  alt={`Post ${post.id}`}
+                  className="latest-post-image" /* 클래스명 변경 */
+                  loading="lazy" // 이미지 지연 로딩 추가
+                  onError={(e) => {
+                    e.target.onerror = null; // 무한 루프 방지
+                    e.target.src = "/path/to/placeholder-image.png"; // 대체 이미지 경로로 변경
+                  }}
+                />
+              )}
+              <div className="latest-post-content">
+                <h3 className="latest-post-title">{post.title}</h3>
+                {/* 미리보기 부분에 dangerouslySetInnerHTML 사용 */}
+                <p
+                  className="latest-post-preview"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                ></p>
+                <p className="latest-post-date">
+                  {new Date(post.createdAt)
+                    .toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                    })
+                    .replace(/\./g, " .")
+                    .replace(/ \.$/, "")}
+                </p>
               </div>
-            ))
-          : postsStatus === "succeeded" && (
-              <p className="no-posts-message">게시물이 없습니다</p>
-            )}
+            </div>
+          ))
+        ) : postsStatus === "succeeded" ? (
+          <p className="no-posts-message">게시물이 없습니다</p>
+        ) : null}
       </section>
 
       {/* 출석 추적 섹션은 로그인된 사용자에게만 표시 */}

@@ -1,3 +1,5 @@
+// components/MyFeed.js
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
@@ -37,14 +39,26 @@ function MyFeed({ setShowLoginModal }) {
               className="post-card"
               onClick={() => handlePostClick(post.id)}
             >
-              <img
-                src={post.imageUrl}
-                alt={`Post ${post.id}`}
-                className="post-image"
-              />
+              {/* 이미지가 있을 경우에만 렌더링 */}
+              {post.imageUrl && (
+                <div className="image-container">
+                  <img
+                    src={post.imageUrl}
+                    alt={
+                      post.title ? `Image for ${post.title}` : `Post ${post.id}`
+                    }
+                    className="feed-post-image"
+                    loading="lazy" // 이미지 지연 로딩 추가
+                    onError={(e) => {
+                      e.target.onerror = null; // 무한 루프 방지
+                      e.target.src = "/path/to/placeholder-image.png"; // 대체 이미지 경로로 변경
+                    }}
+                  />
+                </div>
+              )}
               <div className="post-content">
                 <h3 className="post-title">{post.title}</h3>
-                {/* 미리보기 부분에 dangerouslySetInnerHTML 사용 */}
+                {/* dangerouslySetInnerHTML을 사용한 미리보기 */}
                 <p
                   className="post-preview"
                   dangerouslySetInnerHTML={{ __html: post.content }}

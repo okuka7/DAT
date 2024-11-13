@@ -1,3 +1,5 @@
+/* styles/PostDetailPage.css */
+
 .post-detail-container {
   max-width: 800px;
   margin: 0 auto;
@@ -33,11 +35,14 @@
   align-items: center;
 }
 
-.main-image {
+.detail-post-image {
+  /* 포스트 디테일 이미지 클래스 */
   width: 100%;
-  max-width: 600px;
-  margin-bottom: 10px;
-  border-radius: 8px;
+  height: auto;
+  object-fit: contain; /* 비율을 유지하며 전체 이미지 표시 */
+  max-width: 800px; /* 디테일 뷰에서의 최대 너비 */
+  max-height: 600px; /* 디테일 뷰에서의 최대 높이 */
+  margin: 0 auto;
 }
 
 .thumbnail-images {
@@ -77,4 +82,21 @@
 
 .post-action-button:hover {
   color: #333;
+}
+
+@media (max-width: 768px) {
+  .post-detail-container {
+    padding: 10px;
+  }
+
+  .detail-post-image {
+    max-width: 100%;
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-post-image {
+    max-height: 300px;
+  }
 }

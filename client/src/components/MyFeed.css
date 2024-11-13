@@ -1,3 +1,5 @@
+/* styles/MyFeed.css */
+
 body {
   padding-top: 100px; /* 헤더 높이만큼 여백 설정 */
 }
@@ -14,17 +16,17 @@ body {
 .tabs {
   display: flex;
   justify-content: center;
-  margin: 40px 0 20px 0; /* 상단에 10px 여백 추가 */
+  margin: 40px 0 20px 0; /* 상단에 40px 여백 추가 */
 }
 
 .tab {
-  padding: 10px 20px;
-  margin: 0 10px;
+  padding: 8px 16px; /* 패딩 감소 */
+  margin: 0 8px; /* 마진 감소 */
   background-color: #f8f8f8 !important;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem; /* 폰트 크기 감소 */
 }
 
 .tab.active {
@@ -34,13 +36,13 @@ body {
 
 /* 물건 업로드 버튼 스타일 */
 .upload-button {
-  padding: 10px 20px;
-  margin-left: 10px; /* Save 옆에 동일한 간격 */
-  background-color: grey !important; /* 탭과 동일한 배경색 */
+  padding: 8px 16px; /* 패딩 감소 */
+  margin-left: 8px; /* 마진 감소 */
+  background-color: rgb(229, 229, 229) !important; /* 탭과 동일한 배경색 */
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem; /* 폰트 크기 감소 */
   color: black;
 }
 
@@ -52,10 +54,10 @@ body {
 /* Feed 스타일 */
 .feed-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4개의 열로 구성 */
-  gap: 30px; /* 카드 간의 간격 */
-  padding: 20px;
-  width: 60%; /* 화면의 60% 너비 */
+  grid-template-columns: repeat(5, 1fr); /* 5개의 열로 설정 */
+  gap: 20px; /* 카드 간격 감소 */
+  padding: 10px; /* 패딩 감소 */
+  width: 80%; /* 전체 너비 유지 */
   margin: 0 auto; /* 중앙 정렬 */
   grid-auto-rows: minmax(100px, auto); /* 각 카드의 높이를 컨텐츠에 맞춰 조절 */
 }
@@ -66,53 +68,118 @@ body {
   justify-content: space-between;
   background-color: white;
   color: black;
-  border: 1px solid black;
-  border-radius: 10px;
+  border: 1px solid #ddd; /* 보더 색상 연하게 변경 */
+  border-radius: 8px; /* 보더 반경 감소 */
   overflow: hidden;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* 박스 그림자 감소 */
   transition: transform 0.2s;
-  padding: 10px;
+  padding: 8px; /* 패딩 감소 */
+  /* width: 50%; */ /* 이 줄을 제거하여 그리드가 너비를 자동으로 조절하게 함 */
 }
 
 .post-card:hover {
   transform: scale(1.02);
 }
 
-.post-image {
+.image-container {
+  width: 100%;
+  max-width: 250px; /* 이미지 컨테이너 최대 너비 감소 */
+  height: auto;
+  margin: 0 auto;
+}
+
+.feed-post-image {
+  /* 피드 이미지 클래스 */
   width: 100%;
   height: auto;
   object-fit: cover;
+  max-width: 100%;
+  max-height: 150px; /* 피드에서의 최대 높이 감소 */
+  margin: 0 auto;
 }
 
 .post-content {
-  padding: 10px;
-  font-size: 0.9rem;
+  padding: 8px; /* 패딩 감소 */
+  font-size: 0.85rem; /* 폰트 크기 감소 */
   color: #333;
   position: relative; /* 날짜를 절대 위치로 배치하기 위한 기준 */
 }
 
 .post-title {
-  font-size: 1.1rem;
+  font-size: 1rem; /* 폰트 크기 감소 */
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 4px; /* 마진 감소 */
 }
 
 .post-preview {
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* 폰트 크기 감소 */
   color: #666;
 }
 
 .post-date {
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* 폰트 크기 감소 */
   color: gray;
   position: absolute;
-  right: 10px;
-  bottom: 10px;
+  right: 8px; /* 위치 조정 */
+  bottom: 8px; /* 위치 조정 */
+}
+
+.no-posts-message {
+  text-align: center;
+  font-size: 1rem; /* 폰트 크기 조정 */
+  color: #666;
+}
+
+@media (max-width: 1200px) {
+  .feed-container {
+    grid-template-columns: repeat(4, 1fr); /* 1200px 이하에서 4개의 열 */
+  }
+}
+
+@media (max-width: 992px) {
+  .feed-container {
+    grid-template-columns: repeat(3, 1fr); /* 992px 이하에서 3개의 열 */
+  }
 }
 
 @media (max-width: 768px) {
   .feed-container {
     grid-template-columns: repeat(2, 1fr); /* 작은 화면에서는 2개의 열 */
+    width: 90%; /* 너비 조정 */
+  }
+
+  .feed-post-image {
+    max-height: 120px; /* 작은 화면에서 이미지 높이 감소 */
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-container {
+    grid-template-columns: 1fr; /* 더 작은 화면에서는 1개의 열 */
+    width: 95%; /* 너비 조정 */
+  }
+
+  .feed-post-image {
+    max-height: 100px; /* 더 작은 화면에서 이미지 높이 감소 */
+  }
+
+  .post-content {
+    padding: 6px; /* 패딩 추가 감소 */
+    font-size: 0.8rem; /* 폰트 크기 감소 */
+  }
+
+  .post-title {
+    font-size: 0.95rem; /* 폰트 크기 감소 */
+  }
+
+  .post-preview {
+    font-size: 0.8rem; /* 폰트 크기 감소 */
+  }
+
+  .post-date {
+    font-size: 0.7rem; /* 폰트 크기 감소 */
+    right: 6px;
+    bottom: 6px;
   }
 }
 
@@ -148,13 +215,13 @@ body {
 }
 
 .close-button {
-  padding: 10px 20px;
+  padding: 8px 16px; /* 패딩 감소 */
   background-color: black;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem; /* 폰트 크기 감소 */
 }
 
 .close-button:hover {

@@ -1,3 +1,5 @@
+// components/PostDetailPage.js
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -62,7 +64,16 @@ function PostDetailPage() {
       <div className="post-content">
         {post.imageUrl && (
           <div className="post-images">
-            <img src={post.imageUrl} alt="Post main" className="post-image" />
+            <img
+              src={post.imageUrl}
+              alt="Post main"
+              className="detail-post-image"
+              loading="lazy"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/path/to/placeholder-image.png";
+              }}
+            />
           </div>
         )}
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
