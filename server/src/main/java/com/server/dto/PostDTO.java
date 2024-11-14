@@ -1,10 +1,13 @@
 package com.server.dto;
 
 import com.server.entity.Post;
+import com.server.entity.Tag;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -18,15 +21,14 @@ public class PostDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String imageUrl;     // 이미지 URL
+    private Set<String> tags;    // 태그 이름들의 집합
 
     // 기본 생성자
     public PostDTO() {}
 
-
-
-    // Post 엔티티를 기반으로 PostDto 생성자 작성
+    // 모든 필드를 포함하는 생성자
     public PostDTO(Long id, String title, String content, Long authorId, String authorName,
-                   LocalDateTime createdAt, LocalDateTime updatedAt, String imageUrl) {
+                   LocalDateTime createdAt, LocalDateTime updatedAt, String imageUrl, Set<String> tags) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -35,19 +37,21 @@ public class PostDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.imageUrl = imageUrl;
+        this.tags = tags;
     }
 
+    // Post 엔티티를 기반으로 하는 생성자
     public PostDTO(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.authorId = post.getAuthor().getId();
+        this.authorName = post.getAuthor().getUsername(); // 추가된 부분
         this.imageUrl = post.getImageUrl();
         this.createdAt = post.getCreatedAt();
         this.updatedAt = post.getUpdatedAt();
-        // 필요에 따라 추가 필드 초기화
+        this.tags = post.getTags().stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
     }
-
-
-
 }
