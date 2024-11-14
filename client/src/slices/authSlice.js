@@ -26,9 +26,18 @@ export const loginUser = createAsyncThunk(
 // 비동기 회원가입 액션
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
-  async (userData, { rejectWithValue }) => {
+  async (
+    { username, password, email, quizQuestion, userAnswer },
+    { rejectWithValue }
+  ) => {
     try {
-      return await registerRequest(userData); // 회원가입 요청 함수
+      return await registerRequest({
+        username,
+        password,
+        email,
+        quizQuestion,
+        userAnswer,
+      });
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to register");
     }

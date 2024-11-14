@@ -14,6 +14,8 @@ export const loginRequest = async (username, password) => {
   }
 };
 
+// apiRequests.js
+
 export const registerRequest = async (userData) => {
   const response = await axios.post(
     "http://localhost:8080/api/users/register",
