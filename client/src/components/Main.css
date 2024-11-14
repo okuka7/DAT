@@ -17,6 +17,10 @@
 
 .latest-posts .latest-post-card {
   display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
   border: 1px solid #ccc;
   border-radius: 8px;
   margin-bottom: 20px;

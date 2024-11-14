@@ -1,5 +1,8 @@
+// src/components/UploadPage.js
+
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./UploadPage.css";
 
@@ -10,7 +13,13 @@ function UploadPage() {
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+
+  // 태그 관련 상태
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState("");
+
   const editorRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (editorRef.current) {
@@ -59,6 +68,17 @@ function UploadPage() {
     setImageFiles((prevFiles) => [...prevFiles, ...newImages]);
   };
 
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
+
   const handlePostUpload = async () => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
@@ -74,6 +94,11 @@ function UploadPage() {
       formData.append("image", file);
     });
 
+    // 태그 추가
+    tags.forEach((tag) => {
+      formData.append("tags", tag);
+    });
+
     try {
       const token = localStorage.getItem("authToken");
       await axios.post("http://localhost:8080/api/posts", formData, {
@@ -83,6 +108,7 @@ function UploadPage() {
         },
       });
       alert("글이 성공적으로 업로드되었습니다!");
+      navigate("/myfeed");
     } catch (error) {
       console.error("글 업로드에 실패했습니다.", error);
       alert("글 업로드에 실패했습니다.");
@@ -148,6 +174,34 @@ function UploadPage() {
               <option value="공개">공개</option>
               <option value="비공개">비공개</option>
             </select>
+          </div>
+
+          {/* 태그 입력 섹션 */}
+          <div className="input-field">
+            <label>태그</label>
+            <div className="tag-input-section">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="태그를 입력하고 Enter를 누르세요"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+              />
+              <button onClick={handleAddTag}>추가</button>
+            </div>
+            <div className="tag-list">
+              {tags.map((tag) => (
+                <div key={tag} className="tag-item">
+                  {tag}
+                  <button onClick={() => handleRemoveTag(tag)}>x</button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

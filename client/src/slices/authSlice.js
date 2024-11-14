@@ -7,6 +7,8 @@ import {
   getCurrentUserRequest,
 } from "../apiRequests";
 
+const token = localStorage.getItem("authToken");
+
 // 비동기 로그인 액션
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
@@ -38,9 +40,8 @@ export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getCurrentUserRequest(); // 사용자 정보 요청
-      const { id, username } = response.data; // response에서 id와 username 추출
-      return { id, username }; // { id, username } 형태로 반환
+      const user = await getCurrentUserRequest(); // 사용자 정보 요청
+      return user; // user 객체에 id와 username 포함
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to fetch current user"
@@ -64,15 +65,15 @@ export const getStatus = createAsyncThunk(
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    isLoggedIn: false,
-    token: null,
-    user: { id: null, username: null }, // user 초기값을 명확하게 설정
+    isLoggedIn: !!token,
+    token: token,
+    user: { id: null, username: null },
     error: null,
-    loginStatus: "idle", // 로그인 상태
-    registerStatus: "idle", // 회원가입 상태
-    userStatus: "idle", // 사용자 정보 조회 상태
-    statusState: "idle", // 상태 조회를 위한 필드
-    statusData: null, // 상태 조회 데이터 저장
+    loginStatus: "idle",
+    registerStatus: "idle",
+    userStatus: "idle",
+    statusState: "idle",
+    statusData: null,
   },
   reducers: {
     logout(state) {
@@ -90,10 +91,9 @@ const authSlice = createSlice({
         state.loginStatus = "loading";
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log("loginUser fulfilled action.payload:", action.payload); // 디버깅용
         state.isLoggedIn = true;
-        state.token = action.payload.token; // loginRequest에서 받은 토큰
-        state.user = action.payload.user; // user 객체에 id와 username 설정
+        state.token = action.payload.token;
+        state.user = action.payload.user;
         state.error = null;
         state.loginStatus = "succeeded";
       })
@@ -120,9 +120,8 @@ const authSlice = createSlice({
         state.userStatus = "loading";
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        console.log("getCurrentUser fulfilled action.payload:", action.payload); // 디버깅용
         state.isLoggedIn = true;
-        state.user = action.payload; // 사용자 정보 업데이트
+        state.user = action.payload;
         state.userStatus = "succeeded";
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
@@ -136,7 +135,7 @@ const authSlice = createSlice({
       })
       .addCase(getStatus.fulfilled, (state, action) => {
         state.statusState = "succeeded";
-        state.statusData = action.payload; // 서버에서 받은 상태 데이터
+        state.statusData = action.payload;
       })
       .addCase(getStatus.rejected, (state, action) => {
         state.statusState = "failed";

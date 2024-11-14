@@ -1,123 +1,112 @@
-package com.server.controller;
+package com.server.service;
 
 import com.server.dto.PostDTO;
 import com.server.entity.Post;
+import com.server.entity.Tag;
 import com.server.entity.User;
-import com.server.service.FileUploadService;
-import com.server.service.PostService;
-import com.server.service.UserService;
+import com.server.repository.PostRepository;
+import com.server.repository.TagRepository;
+import com.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("/api/posts")
-public class PostController {
-
-    @Autowired
-    private PostService postService;
+@Service
+public class PostService {
 
     @Autowired
-    private FileUploadService fileUploadService;
+    private PostRepository postRepository;
 
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
-    @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestParam("title") String title,
-                                              @RequestParam("content") String content,
-                                              @RequestParam(value = "image", required = false) MultipartFile image,
-                                              @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            // 현재 로그인한 사용자 정보 조회
-            String username = userDetails.getUsername();
-            Optional<User> userOpt = userService.getUserByUsername(username);
-            if (!userOpt.isPresent()) {
-                return ResponseEntity.status(404).body(null);
-            }
-            User author = userOpt.get();
+    @Autowired
+    private TagRepository tagRepository;
 
-            // 이미지 파일 업로드 처리 (optional)
-            String imageUrl = null;
-            if (image != null) {
-                imageUrl = fileUploadService.uploadFile(image);
-                System.out.println("업로드된 이미지 URL: " + imageUrl);
-            }
+    @Transactional
+    public PostDTO createPost(Long userId, Post post, Set<String> tagNames) {
+        System.out.println("Post imageUrl: " + post.getImageUrl()); // 이미지 URL 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // 글 작성
-            Post post = new Post();
-            post.setTitle(title);
-            post.setContent(content);
-            post.setAuthor(author); // 작성자 설정
-            post.setImageUrl(imageUrl); // 이미지 URL 설정
+        post.setAuthor(user);
 
-            // `userId`를 넘겨서 글 작성
-            PostDTO newPost = postService.createPost(author.getId(), post);
+        // 태그 처리
+        Set<Tag> tags = tagNames.stream().map(tagName -> {
+            return tagRepository.findByName(tagName)
+                    .orElseGet(() -> {
+                        Tag newTag = new Tag();
+                        newTag.setName(tagName);
+                        return tagRepository.save(newTag);
+                    });
+        }).collect(Collectors.toSet());
 
-            return ResponseEntity.ok(newPost);
-        } catch (Exception e) {
-            e.printStackTrace(); // 예외 스택 추적 로그 출력
-            return ResponseEntity.status(500).body(null);
-        }
+        post.setTags(tags);
+
+        Post savedPost = postRepository.save(post);
+
+        return new PostDTO(savedPost);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
-        Optional<PostDTO> post = postService.getPostById(id);
-        return post.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public Optional<PostDTO> getPostById(Long id) {
+        return postRepository.findById(id).map(PostDTO::new);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PostDTO> updatePost(@PathVariable Long id, @RequestBody PostDTO updatedPost) {
-        PostDTO post = postService.updatePost(id, updatedPost);
-        return ResponseEntity.ok(post);
-    }
+    public PostDTO updatePost(Long id, PostDTO updatedPostDTO) {
+        Post existingPost = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        Optional<User> userOpt = userService.getUserByUsername(username);
+        existingPost.setTitle(updatedPostDTO.getTitle());
+        existingPost.setContent(updatedPostDTO.getContent());
+        existingPost.setImageUrl(updatedPostDTO.getImageUrl());
 
-        if (!userOpt.isPresent()) {
-            return ResponseEntity.status(404).build();
+        // 태그 업데이트 처리
+        if (updatedPostDTO.getTags() != null) {
+            Set<Tag> tags = updatedPostDTO.getTags().stream().map(tagName -> {
+                return tagRepository.findByName(tagName)
+                        .orElseGet(() -> {
+                            Tag newTag = new Tag();
+                            newTag.setName(tagName);
+                            return tagRepository.save(newTag);
+                        });
+            }).collect(Collectors.toSet());
+            existingPost.setTags(tags);
         }
 
-        User currentUser = userOpt.get();
-        Optional<PostDTO> postOpt = postService.getPostById(id);
-
-        if (!postOpt.isPresent()) {
-            return ResponseEntity.status(404).build();
-        }
-
-        PostDTO post = postOpt.get();
-
-        // 작성자가 일치하지 않으면 403 Forbidden 반환
-        if (!post.getAuthorId().equals(currentUser.getId())) {
-            return ResponseEntity.status(403).build();
-        }
-
-        postService.deletePost(id);
-        return ResponseEntity.noContent().build();
+        Post savedPost = postRepository.save(existingPost);
+        return new PostDTO(savedPost);
     }
 
-
-    @GetMapping
-    public ResponseEntity<List<PostDTO>> getAllPosts() {
-        List<PostDTO> posts = postService.getAllPosts();
-        return ResponseEntity.ok(posts);
+    public void deletePost(Long id) {
+        postRepository.deleteById(id);
     }
 
-    @GetMapping("/latest")
-    public ResponseEntity<List<PostDTO>> getLatestPosts() {
-        List<PostDTO> latestPosts = postService.getLatestPosts(10); // 최신 10개 게시물
-        return ResponseEntity.ok(latestPosts);
+    public List<PostDTO> getAllPosts() {
+        return postRepository.findAll().stream()
+                .map(PostDTO::new)
+                .collect(Collectors.toList());
     }
 
+    public List<PostDTO> getPostsByTag(String tagName) {
+        Tag tag = tagRepository.findByName(tagName)
+                .orElseThrow(() -> new RuntimeException("Tag not found"));
 
+        List<Post> posts = postRepository.findByTagsContaining(tag);
+        return posts.stream().map(PostDTO::new).collect(Collectors.toList());
+    }
+
+    public List<PostDTO> getLatestPosts(int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("createdAt").descending());
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return posts.stream().map(PostDTO::new).collect(Collectors.toList());
+    }
 }

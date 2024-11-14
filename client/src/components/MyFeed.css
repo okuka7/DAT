@@ -234,3 +234,95 @@ body {
   justify-content: center;
   align-items: center;
 }
+
+/* 태그 표시 */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.post-tag {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.post-tag:hover {
+  background-color: #e0e0e0;
+}
+
+/* MyFeed.css */
+
+/* 태그 리스트 컨테이너 */
+.tag-list-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px auto;
+  max-width: 80%;
+  justify-content: center;
+}
+
+/* 태그 아이템 */
+.tag-item {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.tag-item:hover {
+  background-color: #e0e0e0;
+}
+
+/* 활성화된 태그 */
+.tag-item.active {
+  background-color: #333;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* 필터 정보 영역 스타일 */
+.filter-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #f9f9f9; /* 연한 배경색 */
+  border-radius: 8px;
+  max-width: 80%;
+  gap: 10px;
+}
+
+/* 필터 정보의 텍스트 스타일 */
+.filter-info span {
+  font-size: 1rem;
+  color: #333;
+}
+
+/* 필터 제거 버튼 스타일 */
+.filter-info button {
+  padding: 6px 12px;
+  background-color: #e74c3c; /* 눈에 띄는 색상 (빨간색 계열) */
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.filter-info button:hover {
+  background-color: #c0392b; /* 호버 시 더 진한 색상 */
+}

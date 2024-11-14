@@ -1,20 +1,49 @@
-// components/MyFeed.js
+// src/components/MyFeed.js
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import API from "../api";
 import Tabs from "./Tabs";
 import "./MyFeed.css";
 
 function MyFeed({ setShowLoginModal }) {
   const [posts, setPosts] = useState([]);
+  const [allTags, setAllTags] = useState([]); // 모든 태그 상태 추가
+  const [filterTag, setFilterTag] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const tag = queryParams.get("tag");
+    setFilterTag(tag);
+  }, [location.search]);
+
+  // 모든 태그 가져오기
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await API.get("/tags");
+        setAllTags(response.data);
+      } catch (error) {
+        console.error("Failed to fetch tags:", error);
+        setAllTags([]);
+      }
+    };
+    fetchTags();
+  }, []);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await API.get("/posts");
-        console.log("Fetched posts:", response.data);
+        let response;
+        if (filterTag) {
+          response = await API.get(
+            `/posts?tag=${encodeURIComponent(filterTag)}`
+          );
+        } else {
+          response = await API.get("/posts");
+        }
         setPosts(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Failed to fetch posts:", error);
@@ -22,15 +51,40 @@ function MyFeed({ setShowLoginModal }) {
       }
     };
     fetchPosts();
-  }, []);
+  }, [filterTag]);
 
   const handlePostClick = (postId) => {
     navigate(`/posts/${postId}`);
   };
 
+  const handleTagClick = (tag) => {
+    if (filterTag === tag) {
+      // 동일한 태그를 다시 클릭하면 필터 해제
+      navigate("/myfeed");
+    } else {
+      navigate(`/myfeed?tag=${encodeURIComponent(tag)}`);
+    }
+  };
+
   return (
     <div className="myfeed-container">
       <Tabs setShowLoginModal={setShowLoginModal} />
+
+      {/* 태그 리스트 표시 */}
+      <div className="tag-list-container">
+        {allTags.map((tag) => (
+          <span
+            key={tag}
+            className={`tag-item ${filterTag === tag ? "active" : ""}`}
+            onClick={() => handleTagClick(tag)}
+          >
+            #{tag}
+          </span>
+        ))}
+      </div>
+
+      {/* 필터 정보 영역 제거 */}
+
       <div className="feed-container">
         {posts.length > 0 ? (
           posts.map((post) => (
@@ -48,10 +102,10 @@ function MyFeed({ setShowLoginModal }) {
                       post.title ? `Image for ${post.title}` : `Post ${post.id}`
                     }
                     className="feed-post-image"
-                    loading="lazy" // 이미지 지연 로딩 추가
+                    loading="lazy"
                     onError={(e) => {
-                      e.target.onerror = null; // 무한 루프 방지
-                      e.target.src = "/path/to/placeholder-image.png"; // 대체 이미지 경로로 변경
+                      e.target.onerror = null;
+                      e.target.src = "/path/to/placeholder-image.png";
                     }}
                   />
                 </div>
@@ -73,6 +127,23 @@ function MyFeed({ setShowLoginModal }) {
                     .replace(/\./g, " .")
                     .replace(/ \.$/, "")}
                 </p>
+                {/* 태그 표시 */}
+                {post.tags && post.tags.length > 0 && (
+                  <div className="post-tags">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="post-tag"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTagClick(tag);
+                        }}
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))

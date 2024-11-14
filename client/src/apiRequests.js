@@ -1,3 +1,4 @@
+// apiRequests.js
 import axios from "axios";
 
 export const loginRequest = async (username, password) => {
@@ -35,7 +36,6 @@ export const getCurrentUserRequest = async () => {
         },
       }
     );
-    console.log("API Response:", response.data);
     const { id, username } = response.data.data; // 필요한 데이터만 추출
     return { id, username };
   } else {
@@ -51,7 +51,7 @@ export const getStatusRequest = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data; // 상태 데이터 반환
+    return response.data;
   } else {
     throw new Error("토큰 없음");
   }

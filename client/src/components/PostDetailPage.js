@@ -1,13 +1,9 @@
-// components/PostDetailPage.js
+// src/components/PostDetailPage.js
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchPostById,
-  selectPostById,
-  deletePost,
-} from "../slices/postSlice.js";
+import { fetchPostById, selectPostById, deletePost } from "../slices/postSlice";
 import { selectCurrentUserId } from "../slices/authSlice";
 import "./PostDetailPage.css";
 
@@ -45,6 +41,10 @@ function PostDetailPage() {
     }
   };
 
+  const handleTagClick = (tag) => {
+    navigate(`/myfeed?tag=${encodeURIComponent(tag)}`);
+  };
+
   if (loading) {
     return <p>로딩 중...</p>;
   }
@@ -77,6 +77,22 @@ function PostDetailPage() {
           </div>
         )}
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
+
+        {/* 태그 표시 */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="post-tags">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="post-tag"
+                onClick={() => handleTagClick(tag)}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="post-actions">
           {currentUserId === post.authorId && (
             <>

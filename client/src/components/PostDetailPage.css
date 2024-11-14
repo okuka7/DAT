@@ -100,3 +100,25 @@
     max-height: 300px;
   }
 }
+
+/* 태그 표시 */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.post-tag {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.post-tag:hover {
+  background-color: #e0e0e0;
+}
