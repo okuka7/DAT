@@ -27,4 +27,7 @@ public class UserRegistrationDto {
 
     // role을 추가하여 등급을 받아올 수 있게 합니다.
     private User.Role role = User.Role.SILVER; // 기본값을 실버로 설정
+
+    private String quizQuestion;
+    private String userAnswer;
 }

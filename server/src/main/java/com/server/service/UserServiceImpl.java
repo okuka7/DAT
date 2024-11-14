@@ -28,6 +28,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(UserRegistrationDto userDto) {
+        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            throw new RuntimeException("이미 존재하는 회원입니다.");
+        }
         // UserRegistrationDto에서 role을 가져오지 않으면 기본값인 SILVER로 설정
         if (userDto.getRole() == null) {
             userDto.setRole(User.Role.SILVER);  // 기본값을 SILVER로 설정

@@ -14,6 +14,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ApiResponse<>(false, errorMessage, null));
     }
 
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Object>> handleRuntimeExceptions(RuntimeException ex) {
         return ResponseEntity.status(500)

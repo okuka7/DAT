@@ -4,6 +4,7 @@ import com.server.dto.UserRegistrationDto;
 import com.server.dto.request.UserRequestDto;
 import com.server.dto.response.ApiResponse;
 import com.server.entity.User;
+import com.server.service.QuizService;
 import com.server.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,31 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private QuizService quizService;
+
+    // UserController.java
+
+    // UserController.java
+
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> registerUser(@Valid @RequestBody UserRegistrationDto userDto) {
-        User newUser = userService.registerUser(userDto);
-        return ResponseEntity.ok(new ApiResponse<>(true,"회원가입 성공",newUser));
+    public ResponseEntity<ApiResponse<User>> registerUser(
+            @Valid @RequestBody UserRegistrationDto userDto
+    ) {
+        try {
+            // 퀴즈 검증 로직
+            if (!quizService.validateAnswer(userDto.getQuizQuestion(), userDto.getUserAnswer())) {
+                return ResponseEntity.badRequest().body(new ApiResponse<>(false, "정답이 틀렸습니다.", null));
+            }
+
+            User newUser = userService.registerUser(userDto);
+            return ResponseEntity.ok(new ApiResponse<>(true, "회원가입 성공", newUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
+        }
     }
+
+
 
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<User>> getUser(@PathVariable Long userId) {
