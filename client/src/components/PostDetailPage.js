@@ -45,6 +45,10 @@ function PostDetailPage() {
     navigate(`/myfeed?tag=${encodeURIComponent(tag)}`);
   };
 
+  const handleEdit = () => {
+    navigate(`/posts/${postId}/edit`);
+  };
+
   if (loading) {
     return <p>로딩 중...</p>;
   }
@@ -96,7 +100,9 @@ function PostDetailPage() {
         <div className="post-actions">
           {currentUserId === post.authorId && (
             <>
-              <button className="post-action-button">수정</button>
+              <button className="post-action-button" onClick={handleEdit}>
+                수정
+              </button>
               <button className="post-action-button" onClick={handleDelete}>
                 삭제
               </button>

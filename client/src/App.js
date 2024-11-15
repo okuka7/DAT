@@ -6,7 +6,7 @@ import SummerNoteKr from "./summernote-ko-KR.js";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import store from "./store.js";
-import { getCurrentUser } from "./slices/authSlice";
+import { getCurrentUser, logout } from "./slices/authSlice";
 import Header from "./components/Header";
 import Main from "./components/Main";
 import Feed from "./components/Feed";
@@ -15,6 +15,7 @@ import MyPage from "./components/MyPage";
 import UploadPage from "./components/UploadPage";
 import LoginModal from "./components/LoginModal";
 import PostDetailPage from "./components/PostDetailPage";
+import EditPostPage from "./components/EditPostPage";
 
 function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -48,6 +49,7 @@ function App() {
           element={<MyFeed setShowLoginModal={setShowLoginModal} />}
         />
         <Route path="/posts/:postId" element={<PostDetailPage />} />
+        <Route path="/posts/:postId/edit" element={<EditPostPage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route

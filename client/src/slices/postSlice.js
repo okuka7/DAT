@@ -1,4 +1,5 @@
 // src/slices/postSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -10,7 +11,7 @@ export const getLatestPosts = createAsyncThunk(
       const response = await axios.get(
         "http://localhost:8080/api/posts/latest"
       );
-      return response.data;
+      return response.data.posts; // 컨트롤러에서 { posts: [...] } 형태로 반환
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to fetch latest posts"
@@ -25,7 +26,7 @@ export const fetchPosts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get("http://localhost:8080/api/posts");
-      return response.data;
+      return response.data.posts; // 컨트롤러에서 { posts: [...] } 형태로 반환
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to fetch posts");
     }
@@ -48,7 +49,7 @@ export const fetchPostById = createAsyncThunk(
         { headers }
       );
 
-      return response.data;
+      return response.data; // 컨트롤러에서 PostDTO 형태로 반환
     } catch (error) {
       console.error("Error details:", error);
       return rejectWithValue(error.response?.data || "Failed to fetch post");
@@ -72,6 +73,33 @@ export const deletePost = createAsyncThunk(
       return postId;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to delete post");
+    }
+  }
+);
+
+// 게시물 업데이트 비동기 액션
+export const updatePost = createAsyncThunk(
+  "posts/updatePost",
+  async ({ postId, formData }, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth?.token;
+      if (!token) throw new Error("User is not authenticated");
+
+      const response = await axios.put(
+        `http://localhost:8080/api/posts/${postId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data; // 업데이트된 게시물 데이터 반환
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to update the post"
+      );
     }
   }
 );
@@ -123,6 +151,12 @@ const postsSlice = createSlice({
         const post = action.payload;
         if (!state.items.some((p) => p.id === post.id)) {
           state.items.push(post);
+        } else {
+          // 기존 게시물이 있다면 업데이트
+          const index = state.items.findIndex((p) => p.id === post.id);
+          if (index !== -1) {
+            state.items[index] = post;
+          }
         }
       })
       .addCase(fetchPostById.rejected, (state, action) => {
@@ -135,6 +169,25 @@ const postsSlice = createSlice({
         state.items = state.items.filter((post) => post.id !== action.payload);
       })
       .addCase(deletePost.rejected, (state, action) => {
+        state.error = action.payload || action.error.message;
+      })
+
+      // 게시물 업데이트
+      .addCase(updatePost.pending, (state) => {
+        state.postStatus = "loading";
+      })
+      .addCase(updatePost.fulfilled, (state, action) => {
+        state.postStatus = "succeeded";
+        const updatedPost = action.payload;
+        const existingPost = state.items.find(
+          (post) => post.id === updatedPost.id
+        );
+        if (existingPost) {
+          Object.assign(existingPost, updatedPost);
+        }
+      })
+      .addCase(updatePost.rejected, (state, action) => {
+        state.postStatus = "failed";
         state.error = action.payload || action.error.message;
       });
   },
