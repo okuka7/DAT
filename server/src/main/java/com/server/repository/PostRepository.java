@@ -11,5 +11,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    List<Post> findByTagsContaining(Tag tag);
+    List<Post> findByTags_Name(String tagName);
 }

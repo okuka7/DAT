@@ -1,3 +1,5 @@
+// src/main/java/com/server/entity/Post.java
+
 package com.server.entity;
 
 import jakarta.persistence.*;
@@ -5,13 +7,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 public class Post {
+
+    public enum Status {
+        PUBLIC, PRIVATE
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +42,10 @@ public class Post {
     // 이미지 URL을 추가
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status; // status 필드 추가
 
     @PrePersist
     protected void onCreate() {

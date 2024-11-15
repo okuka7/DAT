@@ -1,3 +1,5 @@
+// src/main/java/com/server/controller/PostController.java
+
 package com.server.controller;
 
 import com.server.dto.PostDTO;
@@ -33,6 +35,7 @@ public class PostController {
     public ResponseEntity<PostDTO> createPost(
             @RequestParam("title") String title,
             @RequestParam("content") String content,
+            @RequestParam(value = "status", required = false, defaultValue = "PUBLIC") String status,
             @RequestParam(value = "image", required = false) MultipartFile image,
             @RequestParam(value = "tags", required = false) List<String> tags,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -59,6 +62,13 @@ public class PostController {
             post.setAuthor(author); // 작성자 설정
             post.setImageUrl(imageUrl); // 이미지 URL 설정
 
+            // 상태 설정
+            try {
+                post.setStatus(Post.Status.valueOf(status));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(null); // 유효하지 않은 상태 값
+            }
+
             // 태그 리스트를 Set으로 변환
             Set<String> tagNames = tags != null ? new HashSet<>(tags) : new HashSet<>();
 
@@ -83,7 +93,11 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<PostDTO> updatePost(
             @PathVariable Long id,
-            @RequestBody PostDTO updatedPost,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "tags", required = false) List<String> tags,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             // 현재 로그인한 사용자 정보 조회
@@ -108,8 +122,34 @@ public class PostController {
                 return ResponseEntity.status(403).build();
             }
 
+            // 이미지 파일 업로드 처리 (optional)
+            String imageUrl = existingPost.getImageUrl(); // 기존 이미지 URL
+            if (image != null && !image.isEmpty()) {
+                imageUrl = fileUploadService.uploadFile(image);
+                System.out.println("업로드된 이미지 URL: " + imageUrl);
+            }
+
+            // 상태 설정
+            String updatedStatus = existingPost.getStatus(); // 기본값은 기존 상태
+            if (status != null) {
+                try {
+                    Post.Status.valueOf(status); // 유효성 검사
+                    updatedStatus = status;
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest().body(null); // 유효하지 않은 상태 값
+                }
+            }
+
             // 게시물 수정
-            updatedPost.setId(id); // ID 설정
+            PostDTO updatedPost = new PostDTO();
+            updatedPost.setId(id);
+            updatedPost.setTitle(title);
+            updatedPost.setContent(content);
+            updatedPost.setStatus(updatedStatus); // status 설정
+            updatedPost.setImageUrl(imageUrl);
+            updatedPost.setAuthorId(currentUser.getId());
+            updatedPost.setTags(tags != null ? new HashSet<>(tags) : existingPost.getTags());
+
             PostDTO post = postService.updatePost(id, updatedPost);
             return ResponseEntity.ok(post);
 

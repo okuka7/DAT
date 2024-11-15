@@ -1,3 +1,5 @@
+// src/main/java/com/server/dto/PostDTO.java
+
 package com.server.dto;
 
 import com.server.entity.Post;
@@ -17,18 +19,19 @@ public class PostDTO {
     private String title;
     private String content;
     private Long authorId;      // 작성자의 ID
-    private String authorName;   // 작성자의 이름 (username)
+    private String authorName;  // 작성자의 이름 (username)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String imageUrl;     // 이미지 URL
-    private Set<String> tags;    // 태그 이름들의 집합
+    private String imageUrl;    // 이미지 URL
+    private Set<String> tags;   // 태그 이름들의 집합
+    private String status;      // status 필드 추가
 
     // 기본 생성자
     public PostDTO() {}
 
     // 모든 필드를 포함하는 생성자
     public PostDTO(Long id, String title, String content, Long authorId, String authorName,
-                   LocalDateTime createdAt, LocalDateTime updatedAt, String imageUrl, Set<String> tags) {
+                   LocalDateTime createdAt, LocalDateTime updatedAt, String imageUrl, Set<String> tags, String status) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -38,6 +41,7 @@ public class PostDTO {
         this.updatedAt = updatedAt;
         this.imageUrl = imageUrl;
         this.tags = tags;
+        this.status = status;
     }
 
     // Post 엔티티를 기반으로 하는 생성자
@@ -53,5 +57,6 @@ public class PostDTO {
         this.tags = post.getTags().stream()
                 .map(Tag::getName)
                 .collect(Collectors.toSet());
+        this.status = post.getStatus().name(); // status 필드 설정
     }
 }
