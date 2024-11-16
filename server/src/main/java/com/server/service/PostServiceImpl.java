@@ -12,7 +12,11 @@ import com.server.repository.TagRepository;
 import com.server.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+// 기타 import 생략
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,6 +28,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PostServiceImpl.class);
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -55,17 +61,25 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDTO createPost(Long userId, Post post, Set<String> tagNames) {
+        logger.info("게시물 생성 시작: userId={}, title={}", userId, post.getTitle());
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("사용자 찾을 수 없음: userId={}", userId);
+                    return new RuntimeException("User not found");
+                });
 
         post.setAuthor(user);
+        logger.debug("작성자 설정: {}", user.getUsername());
 
         // 태그 처리
         if (tagNames != null && !tagNames.isEmpty()) {
+            logger.debug("태그 처리 시작: 태그 수={}", tagNames.size());
             Set<Tag> tags = tagNames.stream().map(tagName -> {
                 return tagRepository.findByName(tagName)
                         .orElseGet(() -> {
                             Tag newTag = new Tag(tagName);
+                            logger.debug("새 태그 생성 및 저장: {}", tagName);
                             return tagRepository.save(newTag);
                         });
             }).collect(Collectors.toSet());
@@ -73,10 +87,13 @@ public class PostServiceImpl implements PostService {
             // 양방향 관계 설정
             for (Tag tag : tags) {
                 post.addTag(tag);
+                logger.debug("태그 추가: {}", tag.getName());
             }
         }
 
         Post savedPost = postRepository.save(post);
+        logger.info("게시물 생성 완료: postId={}", savedPost.getId());
+
         return new PostDTO(savedPost);
     }
 
@@ -89,7 +106,18 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public Optional<PostDTO> getPostById(Long id) {
-        return postRepository.findById(id).map(PostDTO::new);
+        logger.info("게시물 조회 요청: postId={}", id);
+
+        Optional<Post> postOpt = postRepository.findById(id);
+
+        if (postOpt.isPresent()) {
+            PostDTO postDTO = new PostDTO(postOpt.get());
+            logger.debug("게시물 조회 성공: postId={}", id);
+            return Optional.of(postDTO);
+        } else {
+            logger.warn("게시물 찾을 수 없음: postId={}", id);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -101,11 +129,15 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<PostDTO> getPostsByTag(String tagName) {
+        logger.info("태그로 게시물 조회 요청: tagName={}", tagName);
         Tag tag = tagRepository.findByName(tagName)
-                .orElseThrow(() -> new RuntimeException("Tag not found"));
+                .orElseThrow(() -> {
+                    logger.error("태그 찾을 수 없음: tagName={}", tagName);
+                    return new RuntimeException("Tag not found");
+                });
 
-        // tag.getPosts()를 직접 사용하거나, PostRepository를 통해 조회
         Set<Post> posts = tag.getPosts();
+        logger.debug("태그에 연결된 게시물 수: {}", posts.size());
         return posts.stream().map(PostDTO::new).collect(Collectors.toList());
     }
 
@@ -117,9 +149,10 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<PostDTO> getAllPosts() {
-        return postRepository.findAll().stream()
-                .map(PostDTO::new)
-                .collect(Collectors.toList());
+        logger.info("모든 게시물 조회 요청");
+        List<Post> posts = postRepository.findAll();
+        logger.debug("조회된 게시물 수: {}", posts.size());
+        return posts.stream().map(PostDTO::new).collect(Collectors.toList());
     }
 
     /**
@@ -131,8 +164,10 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<PostDTO> getLatestPosts(int limit) {
+        logger.info("최신 게시물 조회 요청: limit={}", limit);
         Pageable pageable = PageRequest.of(0, limit, Sort.by("createdAt").descending());
         List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+        logger.debug("조회된 최신 게시물 수: {}", posts.size());
         return posts.stream().map(PostDTO::new).collect(Collectors.toList());
     }
 
@@ -146,28 +181,39 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDTO updatePost(Long id, PostDTO updatedPostDTO) {
+        logger.info("게시물 수정 시작: postId={}", id);
+
         Post existingPost = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> {
+                    logger.error("게시물 찾을 수 없음: postId={}", id);
+                    return new RuntimeException("Post not found");
+                });
 
         existingPost.setTitle(updatedPostDTO.getTitle());
         existingPost.setContent(updatedPostDTO.getContent());
+        logger.debug("게시물 제목 및 내용 수정: title={}, content length={}", updatedPostDTO.getTitle(), updatedPostDTO.getContent().length());
 
         // Set status
         try {
             existingPost.setStatus(Post.Status.valueOf(updatedPostDTO.getStatus()));
+            logger.debug("게시물 상태 수정: {}", updatedPostDTO.getStatus());
         } catch (IllegalArgumentException | NullPointerException e) {
+            logger.error("잘못된 상태 값: {}", updatedPostDTO.getStatus(), e);
             throw new RuntimeException("Invalid or missing status value");
         }
 
         // Handle image URL
         existingPost.setImageUrl(updatedPostDTO.getImageUrl());
+        logger.debug("게시물 이미지 URL 수정: {}", updatedPostDTO.getImageUrl());
 
         // Handle tags
         if (updatedPostDTO.getTags() != null) {
+            logger.debug("게시물 태그 수정 시작");
             // 기존 태그 제거 (양방향 관계 관리)
             Set<Tag> existingTags = new HashSet<>(existingPost.getTags());
             for (Tag tag : existingTags) {
                 existingPost.removeTag(tag);
+                logger.debug("태그 제거: {}", tag.getName());
                 // 태그가 다른 게시물과 연결되어 있지 않다면 삭제
                 tagService.deleteTagIfUnused(tag);
             }
@@ -177,19 +223,25 @@ public class PostServiceImpl implements PostService {
             if (newTagNames != null && !newTagNames.isEmpty()) {
                 Set<Tag> newTags = newTagNames.stream().map(tagName -> {
                     return tagRepository.findByName(tagName)
-                            .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                            .orElseGet(() -> {
+                                Tag newTag = new Tag(tagName);
+                                logger.debug("새 태그 생성 및 저장: {}", tagName);
+                                return tagRepository.save(newTag);
+                            });
                 }).collect(Collectors.toSet());
 
                 for (Tag tag : newTags) {
                     existingPost.addTag(tag);
+                    logger.debug("태그 추가: {}", tag.getName());
                 }
             }
 
-            System.out.println("Updated tags: " + existingPost.getTags().stream().map(Tag::getName).collect(Collectors.joining(", ")));
+            logger.debug("게시물 태그 수정 완료: {}", existingPost.getTags().stream().map(Tag::getName).collect(Collectors.joining(", ")));
         }
 
         Post savedPost = postRepository.save(existingPost);
         entityManager.flush(); // 변경 사항 강제 반영
+        logger.info("게시물 수정 완료: postId={}", savedPost.getId());
 
         return new PostDTO(savedPost);
     }
@@ -202,15 +254,22 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deletePost(Long id) {
+        logger.info("게시물 삭제 시작: postId={}", id);
+
         Post existingPost = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> {
+                    logger.error("게시물 찾을 수 없음: postId={}", id);
+                    return new RuntimeException("Post not found");
+                });
 
         // 게시물과 연관된 태그들을 가져옵니다.
         Set<Tag> tags = new HashSet<>(existingPost.getTags());
+        logger.debug("게시물에 연결된 태그 수: {}", tags.size());
 
         // 게시물과 태그 간의 관계를 제거합니다.
         for (Tag tag : tags) {
             existingPost.removeTag(tag);
+            logger.debug("태그 제거: {}", tag.getName());
             // 태그가 다른 게시물과 연결되어 있지 않다면 삭제
             tagService.deleteTagIfUnused(tag);
         }
@@ -218,5 +277,6 @@ public class PostServiceImpl implements PostService {
         // 게시물 삭제
         postRepository.delete(existingPost);
         entityManager.flush(); // 변경 사항 강제 반영
+        logger.info("게시물 삭제 완료: postId={}", id);
     }
 }

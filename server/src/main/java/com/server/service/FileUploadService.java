@@ -1,5 +1,9 @@
+// src/main/java/com/server/service/FileUploadService.java
+
 package com.server.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,20 +17,22 @@ import java.util.UUID;
 @Service
 public class FileUploadService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
+
     @Value("${file.upload-dir}")
     private String uploadDir;
 
     public String uploadFile(MultipartFile file) {
-        System.out.println("uploadFile 메서드 시작"); // 호출 여부 확인용 로그
+        logger.info("파일 업로드 시작: 원본 파일명={}", file.getOriginalFilename());
 
         // 파일을 저장할 디렉토리 생성
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
             try {
                 Files.createDirectories(uploadPath);
-                System.out.println("디렉토리 생성 완료: " + uploadPath.toString());
+                logger.info("디렉토리 생성 완료: {}", uploadPath.toString());
             } catch (IOException e) {
-                System.out.println("디렉토리 생성 실패: " + e.getMessage());
+                logger.error("디렉토리 생성 실패: {}", uploadPath.toString(), e);
                 throw new RuntimeException("파일 저장 경로를 생성할 수 없습니다.", e);
             }
         }
@@ -44,13 +50,15 @@ public class FileUploadService {
 
         try {
             file.transferTo(filePath.toFile());
-            System.out.println("파일 저장 성공: " + filePath.toString());
+            logger.info("파일 저장 성공: {}", filePath.toString());
         } catch (IOException e) {
-            System.out.println("파일 저장 실패: " + e.getMessage());
+            logger.error("파일 저장 실패: {}", filePath.toString(), e);
             throw new RuntimeException("파일 업로드 중 오류 발생", e);
         }
 
         // 클라이언트에서 접근할 수 있는 URL 반환
-        return "/uploads/" + fileName;
+        String fileUrl = "/uploads/" + fileName;
+        logger.debug("파일 URL 반환: {}", fileUrl);
+        return fileUrl;
     }
 }
