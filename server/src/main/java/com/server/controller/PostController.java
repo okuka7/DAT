@@ -32,7 +32,7 @@ public class PostController {
 
     // 게시물 생성
     @PostMapping
-    public ResponseEntity<PostDTO> createPost(
+    public ResponseEntity<?> createPost(
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam(value = "status", required = false, defaultValue = "PUBLIC") String status,
@@ -44,7 +44,7 @@ public class PostController {
             String username = userDetails.getUsername();
             Optional<User> userOpt = userService.getUserByUsername(username);
             if (!userOpt.isPresent()) {
-                return ResponseEntity.status(404).body(null);
+                return ResponseEntity.status(404).body("User not found");
             }
             User author = userOpt.get();
 
@@ -66,7 +66,7 @@ public class PostController {
             try {
                 post.setStatus(Post.Status.valueOf(status));
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(null); // 유효하지 않은 상태 값
+                return ResponseEntity.badRequest().body("Invalid status value: " + status); // 구체적인 오류 메시지 반환
             }
 
             // 태그 리스트를 Set으로 변환
@@ -78,20 +78,38 @@ public class PostController {
             return ResponseEntity.ok(newPost);
         } catch (Exception e) {
             e.printStackTrace(); // 예외 스택 추적 로그 출력
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(500).body("Internal Server Error");
         }
     }
 
+
     // 특정 게시물 조회
     @GetMapping("/{id}")
-    public ResponseEntity<PostDTO> getPost(@PathVariable Long id) {
+    public ResponseEntity<?> getPost(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
         Optional<PostDTO> postOpt = postService.getPostById(id);
-        return postOpt.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        if (!postOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        PostDTO post = postOpt.get();
+
+        // 공개 게시물이거나, 현재 사용자가 작성자인지 확인
+        if (post.getStatus().equals("PRIVATE")) {
+            String username = userDetails.getUsername();
+            Optional<User> userOpt = userService.getUserByUsername(username);
+            if (!userOpt.isPresent() || !post.getAuthorId().equals(userOpt.get().getId())) {
+                return ResponseEntity.status(403).body("Access Denied");
+            }
+        }
+
+        return ResponseEntity.ok(post);
     }
 
     // 게시물 수정
     @PutMapping("/{id}")
-    public ResponseEntity<PostDTO> updatePost(
+    public ResponseEntity<?> updatePost(
             @PathVariable Long id,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
@@ -105,21 +123,21 @@ public class PostController {
             Optional<User> userOpt = userService.getUserByUsername(username);
 
             if (!userOpt.isPresent()) {
-                return ResponseEntity.status(404).build();
+                return ResponseEntity.status(404).body("User not found");
             }
 
             User currentUser = userOpt.get();
             Optional<PostDTO> postOpt = postService.getPostById(id);
 
             if (!postOpt.isPresent()) {
-                return ResponseEntity.status(404).build();
+                return ResponseEntity.status(404).body("Post not found");
             }
 
             PostDTO existingPost = postOpt.get();
 
             // 작성자 검증
             if (!existingPost.getAuthorId().equals(currentUser.getId())) {
-                return ResponseEntity.status(403).build();
+                return ResponseEntity.status(403).body("Access Denied");
             }
 
             // 이미지 파일 업로드 처리 (optional)
@@ -136,7 +154,7 @@ public class PostController {
                     Post.Status.valueOf(status); // 유효성 검사
                     updatedStatus = status;
                 } catch (IllegalArgumentException e) {
-                    return ResponseEntity.badRequest().body(null); // 유효하지 않은 상태 값
+                    return ResponseEntity.badRequest().body("Invalid status value: " + status); // 구체적인 오류 메시지 반환
                 }
             }
 
@@ -155,13 +173,13 @@ public class PostController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(500).body("Internal Server Error");
         }
     }
 
     // 게시물 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(
+    public ResponseEntity<?> deletePost(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -169,29 +187,30 @@ public class PostController {
             Optional<User> userOpt = userService.getUserByUsername(username);
 
             if (!userOpt.isPresent()) {
-                return ResponseEntity.status(404).build();
+                return ResponseEntity.status(404).body("User not found");
             }
 
             User currentUser = userOpt.get();
             Optional<PostDTO> postOpt = postService.getPostById(id);
 
             if (!postOpt.isPresent()) {
-                return ResponseEntity.status(404).build();
+                return ResponseEntity.status(404).body("Post not found");
             }
 
             PostDTO post = postOpt.get();
 
             // 작성자 검증
             if (!post.getAuthorId().equals(currentUser.getId())) {
-                return ResponseEntity.status(403).build();
+                return ResponseEntity.status(403).body("Access Denied");
             }
 
             postService.deletePost(id);
+            System.out.println("게시물 삭제 완료: " + id);
             return ResponseEntity.noContent().build();
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(500).body("Internal Server Error");
         }
     }
 

@@ -3,11 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-// Remove Summernote and jQuery imports
-// import $ from "jquery";
-// import "summernote/dist/summernote-lite.css";
-// import "summernote/dist/lang/summernote-ko-KR";
-// import "summernote/dist/summernote-lite.min.js";
 import { fetchPostById, selectPostById, updatePost } from "../slices/postSlice";
 import "./UploadPage.css"; // UploadPage의 스타일을 재사용
 
@@ -150,6 +145,8 @@ function EditPostPage() {
     tags.forEach((tag) => {
       formData.append("tags", tag);
     });
+
+    console.log("Sending tags:", tags); // 디버깅을 위한 로그 추가
 
     try {
       // Redux 액션을 디스패치하여 게시물 업데이트

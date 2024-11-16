@@ -9,7 +9,7 @@ import "./UploadPage.css";
 function UploadPage() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const [title, setTitle] = useState("");
-  const [status, setStatus] = useState("공개");
+  const [status, setStatus] = useState("PUBLIC"); // 초기 상태을 "PUBLIC"으로 설정
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
@@ -85,9 +85,19 @@ function UploadPage() {
       return;
     }
 
+    // 필수 필드 검증
+    if (!title.trim()) {
+      alert("제목을 입력하세요.");
+      return;
+    }
+    if (!content.trim()) {
+      alert("내용을 입력하세요.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("status", status);
+    formData.append("status", status); // "PUBLIC" 또는 "PRIVATE"
     formData.append("content", content); // summernote의 content
 
     imageFiles.forEach((file) => {
@@ -111,7 +121,11 @@ function UploadPage() {
       navigate("/myfeed");
     } catch (error) {
       console.error("글 업로드에 실패했습니다.", error);
-      alert("글 업로드에 실패했습니다.");
+      if (error.response && error.response.data) {
+        alert(`글 업로드에 실패했습니다: ${error.response.data}`);
+      } else {
+        alert("글 업로드에 실패했습니다.");
+      }
     }
   };
 
@@ -171,8 +185,8 @@ function UploadPage() {
           <div className="input-field">
             <label>공개 여부</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="공개">공개</option>
-              <option value="비공개">비공개</option>
+              <option value="PUBLIC">공개</option>
+              <option value="PRIVATE">비공개</option>
             </select>
           </div>
 

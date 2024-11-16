@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -63,5 +64,22 @@ public class Post {
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    private Set<Tag> tags;
+    private Set<Tag> tags = new HashSet<>(); // 초기화 추가
+
+    // 태그 추가
+    public void addTag(Tag tag) {
+        this.tags.add(tag);
+        tag.getPosts().add(this);
+    }
+
+    // 태그 제거
+    public void removeTag(Tag tag) {
+        this.tags.remove(tag);
+        tag.getPosts().remove(this);
+    }
+
+    // 생성자에서 초기화 (선택 사항)
+    public Post() {
+        this.tags = new HashSet<>();
+    }
 }

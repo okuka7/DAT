@@ -10,6 +10,8 @@ import com.server.mapper.PostMapper;
 import com.server.repository.PostRepository;
 import com.server.repository.TagRepository;
 import com.server.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,17 +25,24 @@ import java.util.stream.Collectors;
 @Service
 public class PostServiceImpl implements PostService {
 
-    @Autowired
-    private PostRepository postRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final TagRepository tagRepository;
+    private final TagService tagService; // TagService 주입
+    private final PostMapper postMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private PostMapper postMapper;
+    public PostServiceImpl(PostRepository postRepository, UserRepository userRepository,
+                           TagRepository tagRepository, TagService tagService, PostMapper postMapper) {
+        this.postRepository = postRepository;
+        this.userRepository = userRepository;
+        this.tagRepository = tagRepository;
+        this.tagService = tagService;
+        this.postMapper = postMapper;
+    }
 
     /**
      * 새로운 게시물을 생성합니다.
@@ -52,19 +61,22 @@ public class PostServiceImpl implements PostService {
         post.setAuthor(user);
 
         // 태그 처리
-        Set<Tag> tags = tagNames.stream().map(tagName -> {
-            return tagRepository.findByName(tagName)
-                    .orElseGet(() -> {
-                        Tag newTag = new Tag();
-                        newTag.setName(tagName);
-                        return tagRepository.save(newTag);
-                    });
-        }).collect(Collectors.toSet());
+        if (tagNames != null && !tagNames.isEmpty()) {
+            Set<Tag> tags = tagNames.stream().map(tagName -> {
+                return tagRepository.findByName(tagName)
+                        .orElseGet(() -> {
+                            Tag newTag = new Tag(tagName);
+                            return tagRepository.save(newTag);
+                        });
+            }).collect(Collectors.toSet());
 
-        post.setTags(tags);
+            // 양방향 관계 설정
+            for (Tag tag : tags) {
+                post.addTag(tag);
+            }
+        }
 
         Post savedPost = postRepository.save(post);
-
         return new PostDTO(savedPost);
     }
 
@@ -75,6 +87,7 @@ public class PostServiceImpl implements PostService {
      * @return 게시물의 DTO를 Optional로 반환
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<PostDTO> getPostById(Long id) {
         return postRepository.findById(id).map(PostDTO::new);
     }
@@ -86,11 +99,13 @@ public class PostServiceImpl implements PostService {
      * @return 게시물 DTO들의 리스트
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PostDTO> getPostsByTag(String tagName) {
         Tag tag = tagRepository.findByName(tagName)
                 .orElseThrow(() -> new RuntimeException("Tag not found"));
 
-        List<Post> posts = postRepository.findByTags_Name(tagName);
+        // tag.getPosts()를 직접 사용하거나, PostRepository를 통해 조회
+        Set<Post> posts = tag.getPosts();
         return posts.stream().map(PostDTO::new).collect(Collectors.toList());
     }
 
@@ -100,6 +115,7 @@ public class PostServiceImpl implements PostService {
      * @return 모든 게시물 DTO들의 리스트
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PostDTO> getAllPosts() {
         return postRepository.findAll().stream()
                 .map(PostDTO::new)
@@ -113,6 +129,7 @@ public class PostServiceImpl implements PostService {
      * @return 최신 게시물 DTO들의 리스트
      */
     @Override
+    @Transactional(readOnly = true)
     public List<PostDTO> getLatestPosts(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by("createdAt").descending());
         List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(pageable);
@@ -147,18 +164,33 @@ public class PostServiceImpl implements PostService {
 
         // Handle tags
         if (updatedPostDTO.getTags() != null) {
-            Set<Tag> tags = updatedPostDTO.getTags().stream().map(tagName -> {
-                return tagRepository.findByName(tagName)
-                        .orElseGet(() -> {
-                            Tag newTag = new Tag();
-                            newTag.setName(tagName);
-                            return tagRepository.save(newTag);
-                        });
-            }).collect(Collectors.toSet());
-            existingPost.setTags(tags);
+            // 기존 태그 제거 (양방향 관계 관리)
+            Set<Tag> existingTags = new HashSet<>(existingPost.getTags());
+            for (Tag tag : existingTags) {
+                existingPost.removeTag(tag);
+                // 태그가 다른 게시물과 연결되어 있지 않다면 삭제
+                tagService.deleteTagIfUnused(tag);
+            }
+
+            // 새로운 태그 추가 (양방향 관계 관리)
+            Set<String> newTagNames = updatedPostDTO.getTags();
+            if (newTagNames != null && !newTagNames.isEmpty()) {
+                Set<Tag> newTags = newTagNames.stream().map(tagName -> {
+                    return tagRepository.findByName(tagName)
+                            .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                }).collect(Collectors.toSet());
+
+                for (Tag tag : newTags) {
+                    existingPost.addTag(tag);
+                }
+            }
+
+            System.out.println("Updated tags: " + existingPost.getTags().stream().map(Tag::getName).collect(Collectors.joining(", ")));
         }
 
         Post savedPost = postRepository.save(existingPost);
+        entityManager.flush(); // 변경 사항 강제 반영
+
         return new PostDTO(savedPost);
     }
 
@@ -168,10 +200,23 @@ public class PostServiceImpl implements PostService {
      * @param id 게시물 ID
      */
     @Override
+    @Transactional
     public void deletePost(Long id) {
-        if (!postRepository.existsById(id)) {
-            throw new RuntimeException("Post not found");
+        Post existingPost = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // 게시물과 연관된 태그들을 가져옵니다.
+        Set<Tag> tags = new HashSet<>(existingPost.getTags());
+
+        // 게시물과 태그 간의 관계를 제거합니다.
+        for (Tag tag : tags) {
+            existingPost.removeTag(tag);
+            // 태그가 다른 게시물과 연결되어 있지 않다면 삭제
+            tagService.deleteTagIfUnused(tag);
         }
-        postRepository.deleteById(id);
+
+        // 게시물 삭제
+        postRepository.delete(existingPost);
+        entityManager.flush(); // 변경 사항 강제 반영
     }
 }
