@@ -67,9 +67,17 @@ pipeline {
         }
         success {
             echo '배포가 성공적으로 완료되었습니다!'
+				subject: "Build ${currentBuild.displayName} succeeded",
+                body: "The build for ${env.JOB_NAME} was successful.",
+                to: 'qorghab123@gmail.com', // 메일정보
+                attachLog: true // 로그파일 첨부 여부
         }
         failure {
             echo '배포에 실패했습니다.'
+				subject: "Build ${currentBuild.displayName} failed",
+                body: "The build for ${env.JOB_NAME} failed. Please check the attached build logs.",
+                to: 'qorghab123@gmail.com', // 메일정보
+                attachLog: true
         }
     }
 }
