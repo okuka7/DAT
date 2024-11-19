@@ -6,8 +6,8 @@ pipeline {
         // Gradle과 Docker 관련 환경 변수 설정
         GRADLE_HOME = tool name: 'Gradle 7.5', type: 'gradle' // Jenkins에 설정한 Gradle 이름과 일치해야 함
         DOCKER_COMPOSE_FILE = 'docker-compose.yml'
-        BACKEND_DOCKER_IMAGE = "your-dockerhub-username/spring_boot_app:${env.BUILD_NUMBER}"
-        FRONTEND_DOCKER_IMAGE = "your-dockerhub-username/react_frontend:${env.BUILD_NUMBER}"
+        BACKEND_DOCKER_IMAGE = "okuka99/DAT_backend:${env.BUILD_NUMBER}"
+        FRONTEND_DOCKER_IMAGE = "okuka99/DAT_frontend:${env.BUILD_NUMBER}"
         HOME_SERVER = 'yuntaegu@211.178.69.18' // 설정한 홈 서버 SSH 사용자 및 외부 IP
         SSH_KEY_ID = 'qorghab123' // Jenkins에 등록한 SSH 키 자격 증명 ID
     }
