@@ -18,7 +18,7 @@ services:
       - app-network
 
   app:
-    image: your-dockerhub-username/dat_backend:${BUILD_NUMBER} # 백엔드 이미지 이름 변경
+    image: okuka99/dat_backend:${BUILD_NUMBER} # 백엔드 이미지 이름 변경
     container_name: spring_boot_app
     ports:
       - "8080:8080"                     # 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑
@@ -33,7 +33,7 @@ services:
       - app-network
 
   frontend:
-    image: your-dockerhub-username/dat_frontend:${BUILD_NUMBER} # 프론트엔드 이미지 이름 변경
+    image: okuka99/dat_frontend:${BUILD_NUMBER} # 프론트엔드 이미지 이름 변경
     container_name: react_frontend
     ports:
       - "3000:3000"                     # 호스트의 3000 포트를 컨테이너의 3000 포트에 매핑
