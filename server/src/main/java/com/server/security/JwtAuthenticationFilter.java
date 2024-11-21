@@ -1,3 +1,5 @@
+// com.server.security.JwtAuthenticationFilter.java
+
 package com.server.security;
 
 import jakarta.servlet.FilterChain;
@@ -26,6 +28,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        String uri = request.getRequestURI();
+
+        // 인증이 필요하지 않은 엔드포인트 목록
+        if (uri.startsWith("/api/auth/") || uri.startsWith("/api/users/register") ||
+                uri.startsWith("/api/posts/") || uri.startsWith("/api/tags/") ||
+                uri.startsWith("/api/tags") || uri.startsWith("/uploads/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = getTokenFromRequest(request);
         System.out.println("Extracted Token: " + token); // 디버깅용 로그
 
@@ -46,6 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");

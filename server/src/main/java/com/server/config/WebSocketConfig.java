@@ -1,10 +1,10 @@
+// com.server.config.WebSocketConfig.java
+
 package com.server.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.*;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -18,7 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") // WebSocket 엔드포인트 설정
-                .setAllowedOrigins("http://localhost:3000") // 프론트엔드의 주소와 동일하게 설정
+                .setAllowedOrigins("http://okuka99.site", "https://okuka99.site") // 실제 프론트엔드 주소로 변경
                 .withSockJS(); // SockJS를 지원하여 WebSocket 연결이 안될 때 fallback 사용
     }
 }

@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/dat?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://mysql:3306/dat?serverTimezone=UTC&characterEncoding=UTF-8
     username: user
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -14,6 +14,6 @@ spring:
 
   web:
     resources:
-      static-locations: file:/Users/yuntaegu/Desktop/DAT_Photo/
+      static-locations: file:/app/uploads/
 file:
-  upload-dir: /Users/yuntaegu/Desktop/DAT_Photo
+  upload-dir: /app/uploads/
