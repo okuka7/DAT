@@ -12,8 +12,7 @@ import {
   selectLatestPosts,
   selectPostsStatus,
   selectPostsError,
-} from "../slices/postSlice.js";
-import Header from "./Header";
+} from "../slices/postSlice";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
 
@@ -107,34 +106,35 @@ function Main({ setShowLoginModal }) {
 
   return (
     <div className="main-container">
-      <Header setShowLoginModal={setShowLoginModal} />
+      {/* Header 컴포넌트 제거 */}
 
       <section className="latest-posts">
         <h2>최신 글</h2>
         {postsStatus === "loading" && <p>로딩 중...</p>}
         {postsStatus === "failed" && <p>Error: {postsError}</p>}
-        {postsStatus === "succeeded" && latestPosts.length > 0 ? (
+        {postsStatus === "succeeded" &&
+        Array.isArray(latestPosts) &&
+        latestPosts.length > 0 ? (
           latestPosts.map((post) => (
             <div
               key={post.id}
-              className="latest-post-card" /* 클래스명 변경 */
+              className="latest-post-card"
               onClick={() => navigate(`/posts/${post.id}`)}
             >
               {post.imageUrl && (
                 <img
                   src={post.imageUrl}
                   alt={`Post ${post.id}`}
-                  className="latest-post-image" /* 클래스명 변경 */
-                  loading="lazy" // 이미지 지연 로딩 추가
+                  className="latest-post-image"
+                  loading="lazy"
                   onError={(e) => {
-                    e.target.onerror = null; // 무한 루프 방지
-                    e.target.src = "/path/to/placeholder-image.png"; // 대체 이미지 경로로 변경
+                    e.target.onerror = null;
+                    e.target.src = "/placeholder.png"; // 실제 플레이스홀더 이미지 경로로 수정
                   }}
                 />
               )}
               <div className="latest-post-content">
                 <h3 className="latest-post-title">{post.title}</h3>
-                {/* 미리보기 부분에 dangerouslySetInnerHTML 사용 */}
                 <p
                   className="latest-post-preview"
                   dangerouslySetInnerHTML={{ __html: post.content }}

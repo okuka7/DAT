@@ -8,7 +8,7 @@ import "./MyFeed.css";
 
 function MyFeed({ setShowLoginModal }) {
   const [posts, setPosts] = useState([]);
-  const [allTags, setAllTags] = useState([]); // 모든 태그 상태 추가
+  const [allTags, setAllTags] = useState([]);
   const [filterTag, setFilterTag] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,7 +59,6 @@ function MyFeed({ setShowLoginModal }) {
 
   const handleTagClick = (tag) => {
     if (filterTag === tag) {
-      // 동일한 태그를 다시 클릭하면 필터 해제
       navigate("/myfeed");
     } else {
       navigate(`/myfeed?tag=${encodeURIComponent(tag)}`);

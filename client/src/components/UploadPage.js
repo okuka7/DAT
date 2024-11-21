@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../api";
 import "./UploadPage.css";
 
 function UploadPage() {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const [title, setTitle] = useState("");
-  const [status, setStatus] = useState("PUBLIC"); // 초기 상태을 "PUBLIC"으로 설정
+  const [status, setStatus] = useState("PUBLIC");
   const [content, setContent] = useState("");
   const [images, setImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
@@ -110,11 +110,9 @@ function UploadPage() {
     });
 
     try {
-      const token = localStorage.getItem("authToken");
-      await axios.post("http://localhost:8080/api/posts", formData, {
+      await API.post("/posts", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
         },
       });
       alert("글이 성공적으로 업로드되었습니다!");

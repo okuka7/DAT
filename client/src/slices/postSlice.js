@@ -1,17 +1,16 @@
 // src/slices/postSlice.js
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api";
 
 // 최신 게시물 데이터를 가져오는 비동기 액션
 export const getLatestPosts = createAsyncThunk(
   "posts/getLatestPosts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        "http://localhost:8080/api/posts/latest"
-      );
-      return response.data.posts; // 컨트롤러에서 { posts: [...] } 형태로 반환
+      const response = await API.get("/posts/latest");
+      // 백엔드 응답에 따라 반환 데이터 수정
+      return response.data.posts || response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to fetch latest posts"
@@ -25,7 +24,7 @@ export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:8080/api/posts");
+      const response = await API.get("/posts");
       return response.data.posts; // 컨트롤러에서 { posts: [...] } 형태로 반환
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to fetch posts");
@@ -36,19 +35,9 @@ export const fetchPosts = createAsyncThunk(
 // 특정 게시물 데이터를 가져오는 비동기 액션
 export const fetchPostById = createAsyncThunk(
   "posts/fetchPostById",
-  async (postId, { getState, rejectWithValue }) => {
+  async (postId, { rejectWithValue }) => {
     try {
-      const token = getState().auth?.token;
-      console.log("Token:", token); // 토큰 확인 로그
-
-      // headers 객체에서 토큰이 없으면 Authorization 헤더를 생략
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-      const response = await axios.get(
-        `http://localhost:8080/api/posts/${postId}`,
-        { headers }
-      );
-
+      const response = await API.get(`/posts/${postId}`);
       return response.data; // 컨트롤러에서 PostDTO 형태로 반환
     } catch (error) {
       console.error("Error details:", error);
@@ -60,16 +49,9 @@ export const fetchPostById = createAsyncThunk(
 // 게시물 삭제 비동기 액션
 export const deletePost = createAsyncThunk(
   "posts/deletePost",
-  async (postId, { getState, rejectWithValue }) => {
+  async (postId, { rejectWithValue }) => {
     try {
-      const token = getState().auth?.token; // Redux 상태에서 토큰 가져오기
-      if (!token) throw new Error("User is not authenticated");
-
-      await axios.delete(`http://localhost:8080/api/posts/${postId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await API.delete(`/posts/${postId}`);
       return postId;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to delete post");
@@ -80,21 +62,13 @@ export const deletePost = createAsyncThunk(
 // 게시물 업데이트 비동기 액션
 export const updatePost = createAsyncThunk(
   "posts/updatePost",
-  async ({ postId, formData }, { getState, rejectWithValue }) => {
+  async ({ postId, formData }, { rejectWithValue }) => {
     try {
-      const token = getState().auth?.token;
-      if (!token) throw new Error("User is not authenticated");
-
-      const response = await axios.put(
-        `http://localhost:8080/api/posts/${postId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await API.put(`/posts/${postId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data; // 업데이트된 게시물 데이터 반환
     } catch (error) {
       return rejectWithValue(

@@ -1,26 +1,23 @@
 // apiRequests.js
-import axios from "axios";
 
+import API from "./api";
+
+// 로그인 요청 함수
 export const loginRequest = async (username, password) => {
-  const response = await axios.post("http://localhost:8080/api/auth/login", {
-    username,
-    password,
-  });
-  if (response.data.success) {
-    localStorage.setItem("authToken", response.data.data); // 토큰 저장
-    return response.data.data; // 토큰 반환
-  } else {
-    throw new Error("로그인 실패");
+  try {
+    const response = await API.post("/auth/login", { username, password });
+    if (response.data.success) {
+      return response.data.data; // 토큰 반환
+    } else {
+      throw new Error(response.data.message || "로그인 실패");
+    }
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "로그인 실패");
   }
 };
 
-// apiRequests.js
-
 export const registerRequest = async (userData) => {
-  const response = await axios.post(
-    "http://localhost:8080/api/users/register",
-    userData
-  );
+  const response = await API.post("/users/register", userData);
   if (!response.data.success) {
     throw new Error("회원가입 실패");
   }
@@ -28,33 +25,12 @@ export const registerRequest = async (userData) => {
 };
 
 export const getCurrentUserRequest = async () => {
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    const response = await axios.get(
-      "http://localhost:8080/api/users/getLoginUser",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const { id, username } = response.data.data; // 필요한 데이터만 추출
-    return { id, username };
-  } else {
-    throw new Error("토큰 없음");
-  }
+  const response = await API.get("/users/getLoginUser");
+  const { id, username } = response.data.data; // 필요한 데이터만 추출
+  return { id, username };
 };
 
 export const getStatusRequest = async () => {
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    const response = await axios.get("http://localhost:8080/api/users/status", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data;
-  } else {
-    throw new Error("토큰 없음");
-  }
+  const response = await API.get("/users/status");
+  return response.data;
 };

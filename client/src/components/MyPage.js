@@ -1,4 +1,5 @@
 // src/components/MyPage.js
+
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, getCurrentUser } from "../slices/authSlice";
@@ -25,6 +26,13 @@ function MyPage() {
         });
     }
   }, [isLoggedIn, user, dispatch, navigate]);
+
+  // 로그인하지 않은 사용자가 마이페이지에 접근 시 로그인 모달 표시 또는 리디렉션
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/login"); // 또는 setShowLoginModal(true);
+    }
+  }, [isLoggedIn, navigate]);
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;

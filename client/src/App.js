@@ -1,4 +1,5 @@
-// App.js
+// src/App.js
+
 import React, { useEffect, useState } from "react";
 import $ from "jquery";
 import SummerNoteLite from "./summernote-lite.js";
@@ -29,7 +30,6 @@ function App() {
         .unwrap()
         .catch((error) => {
           console.error("Failed to fetch current user:", error);
-          // 로그인 실패 시 로그아웃 처리
           dispatch(logout());
         });
     }

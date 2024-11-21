@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchPostById, selectPostById, updatePost } from "../slices/postSlice";
+import { selectCurrentUserId } from "../slices/authSlice";
 import "./UploadPage.css"; // UploadPage의 스타일을 재사용
 
 function EditPostPage() {
@@ -13,7 +14,7 @@ function EditPostPage() {
 
   const post = useSelector((state) => selectPostById(state, Number(postId)));
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-  const currentUserId = useSelector((state) => state.auth.user?.id);
+  const currentUserId = useSelector(selectCurrentUserId);
 
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState("PUBLIC");
@@ -48,7 +49,6 @@ function EditPostPage() {
 
       // 에디터 초기화
       if (editorRef.current) {
-        // Check if Summernote is loaded
         if (window.$ && window.$.fn && window.$.fn.summernote) {
           window.$(editorRef.current).summernote({
             height: 300,
@@ -126,11 +126,11 @@ function EditPostPage() {
       return;
     }
 
-    // 작성자 검증 (이미 useEffect에서 검증했으므로 중복될 필요 없음)
-    // if (currentUserId !== post.authorId) {
-    //   alert("수정 권한이 없습니다.");
-    //   return;
-    // }
+    // 작성자 검증
+    if (currentUserId !== post.authorId) {
+      alert("수정 권한이 없습니다.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("title", title);

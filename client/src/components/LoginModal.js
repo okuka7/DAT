@@ -1,11 +1,14 @@
 // src/components/LoginModal.js
+
 import React, { useState, useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
-import { loginUser, registerUser } from "../slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, registerUser, getCurrentUser } from "../slices/authSlice";
 import "./LoginModal.css";
 
 function LoginModal({ closeModal }) {
   const dispatch = useDispatch();
+  const authError = useSelector((state) => state.auth.error);
+  const loginStatus = useSelector((state) => state.auth.loginStatus);
 
   // 상태 변수들
   const [username, setUsername] = useState("");
@@ -67,19 +70,31 @@ function LoginModal({ closeModal }) {
     }
   }, [isRegistering]);
 
-  const handleLogin = () => {
-    dispatch(loginUser({ username, password }))
-      .unwrap()
-      .then(() => {
-        closeModal();
-      })
-      .catch((error) => {
-        setErrorMessage("아이디 또는 비밀번호가 일치하지 않습니다.");
-        console.error("로그인 오류:", error);
-      });
+  // Redux 상태의 authError가 변경될 때 오류 메시지 업데이트
+  useEffect(() => {
+    if (authError) {
+      setErrorMessage(authError);
+    }
+  }, [authError]);
+
+  // 로그인 핸들러
+  const handleLogin = async () => {
+    try {
+      // 로그인 요청
+      await dispatch(loginUser({ username, password })).unwrap();
+      // 사용자 정보 요청
+      await dispatch(getCurrentUser()).unwrap();
+      // 로그인 및 사용자 정보 가져오기 성공 시 모달 닫기
+      closeModal();
+    } catch (error) {
+      // 로그인 또는 사용자 정보 가져오기 실패 시 오류 메시지 설정
+      setErrorMessage(error || "로그인에 실패했습니다.");
+      console.error("로그인 오류:", error);
+    }
   };
 
-  const handleRegister = () => {
+  // 회원가입 핸들러
+  const handleRegister = async () => {
     setErrorMessage(""); // 오류 메시지 초기화
 
     if (password !== confirmPassword) {
@@ -92,23 +107,16 @@ function LoginModal({ closeModal }) {
       return;
     }
 
-    dispatch(
-      registerUser({ username, password, email, quizQuestion, userAnswer })
-    )
-      .unwrap()
-      .then(() => {
-        alert("회원가입이 완료되었습니다. 로그인해 주세요.");
-        setIsRegistering(false);
-      })
-      .catch((error) => {
-        // 서버로부터 받은 오류 메시지 처리
-        if (error && error.message) {
-          setErrorMessage(error.message);
-        } else {
-          setErrorMessage("회원가입에 실패했습니다.");
-        }
-        console.error("회원가입 오류:", error);
-      });
+    try {
+      await dispatch(
+        registerUser({ username, password, email, quizQuestion, userAnswer })
+      ).unwrap();
+      alert("회원가입이 완료되었습니다. 로그인해 주세요.");
+      setIsRegistering(false);
+    } catch (error) {
+      setErrorMessage(error || "회원가입에 실패했습니다.");
+      console.error("회원가입 오류:", error);
+    }
   };
 
   return (
