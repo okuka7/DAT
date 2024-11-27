@@ -1,0 +1,17 @@
+okuka99.site {
+    # 자동으로 Let's Encrypt를 사용하여 SSL 인증서 발급
+    encode gzip
+    root * /usr/share/caddy
+    file_server
+
+    # API 요청을 백엔드로 프록시
+    reverse_proxy /api/* spring_boot_app:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+    }
+}
+
+# 백엔드 API 설정 (필요한 경우)
+api.okuka99.site {
+    reverse_proxy spring_boot_app:8080
+}

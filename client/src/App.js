@@ -1,9 +1,6 @@
 // src/App.js
 
 import React, { useEffect, useState } from "react";
-import $ from "jquery";
-import SummerNoteLite from "./summernote-lite.js";
-import SummerNoteKr from "./summernote-ko-KR.js";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import store from "./store.js";

@@ -2,22 +2,13 @@
 FROM node:16-alpine AS build
 
 WORKDIR /app
-
 COPY package.json yarn.lock ./
-RUN yarn install
-
-# 환경 변수 복사
-COPY .env.production .env
+RUN yarn install --frozen-lockfile
 COPY . .
-
 RUN yarn build
 
-# Stage 2: Serve with Nginx
-FROM nginx:stable-alpine
+# Stage 2: Serve with Caddy
+FROM caddy:latest
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/build /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=build /app/build /usr/share/caddy
+COPY Caddyfile /etc/caddy/Caddyfile

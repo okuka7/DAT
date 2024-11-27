@@ -87,7 +87,7 @@ export const getStatus = createAsyncThunk(
 const initialState = {
   isLoggedIn: !!token,
   token: token,
-  user: null,
+  user: null, // UserDTO 객체 (id, username, email, role)
   error: null,
   loginStatus: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   registerStatus: "idle",
@@ -147,7 +147,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload; // UserDTO 객체 포함 (role 포함)
         state.userStatus = "succeeded";
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
@@ -179,6 +179,7 @@ const authSlice = createSlice({
 
 // 셀렉터 정의
 export const selectCurrentUserId = (state) => state.auth.user?.id;
+export const selectUserRole = (state) => state.auth.user?.role; // role 셀렉터 추가
 export const selectStatusData = (state) => state.auth.statusData;
 export const selectStatusState = (state) => state.auth.statusState;
 export const selectAuthError = (state) => state.auth.error;
