@@ -35,6 +35,8 @@ public class PostController {
     private UserService userService;
 
     // 게시물 생성
+    // src/main/java/com/server/controller/PostController.java
+
     @PostMapping
     public ResponseEntity<?> createPost(
             @RequestParam("title") String title,
@@ -51,6 +53,11 @@ public class PostController {
                 return ResponseEntity.status(404).body("User not found");
             }
             User author = userOpt.get();
+
+            // 등급 확인
+            if (!"GOLD".equalsIgnoreCase(author.getRole().name())) {
+                return ResponseEntity.status(403).body("GOLD 등급 사용자만 글쓰기가 가능합니다.");
+            }
 
             // 이미지 파일 업로드 처리 (optional)
             String imageUrl = null;
@@ -85,6 +92,7 @@ public class PostController {
             return ResponseEntity.status(500).body("Internal Server Error");
         }
     }
+
 
 
     // 특정 게시물 조회

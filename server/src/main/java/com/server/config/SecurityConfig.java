@@ -44,7 +44,8 @@ public class SecurityConfig {
                                 "/api/posts/**",
                                 "/api/tags/**",
                                 "/api/tags",
-                                "/uploads/**"
+                                "/uploads/**",
+                                "/api/login"
                         ).permitAll()  // 공개 경로
                         .requestMatchers(
                                 "/api/users/getLoginUser",
