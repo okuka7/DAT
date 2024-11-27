@@ -2,51 +2,63 @@
 version: '3.8'
 
 services:
+  caddy:
+    image: okuka99/dat_frontend:latest  # Jenkins에서 빌드한 이미지 사용
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+
   mysql:
     image: mysql:latest
     container_name: my_mysql_container
     environment:
-      MYSQL_ROOT_PASSWORD: 1234        # 루트 비밀번호 설정
-      MYSQL_DATABASE: dat               # 기본 데이터베이스 이름
-      MYSQL_USER: user                  # 사용자 이름 설정
-      MYSQL_PASSWORD: 1234              # 사용자 비밀번호 설정
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: dat
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 1234
     ports:
-      - "3306:3306"                     # 호스트의 3306 포트를 컨테이너의 3306 포트에 매핑
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql       # 데이터 유지용 볼륨 설정
+      - mysql_data:/var/lib/mysql
+      - ./mysql_conf/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   app:
-    image: okuka99/dat_backend:${BUILD_NUMBER} # 백엔드 이미지 이름 변경
+    image: okuka99/dat_backend:latest
     container_name: spring_boot_app
-    ports:
-      - "8080:8080"                     # 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/dat
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: 1234
-      # 추가적인 환경 변수 설정 가능
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - app-network
-
-  frontend:
-    image: okuka99/dat_frontend:${BUILD_NUMBER} # 프론트엔드 이미지 이름 변경
-    container_name: react_frontend
-    ports:
-      - "3000:3000"                     # 호스트의 3000 포트를 컨테이너의 3000 포트에 매핑
-    environment:
-      REACT_APP_API_URL: http://localhost:8080/api
-      # 추가적인 환경 변수 설정 가능
-    depends_on:
-      - app
-    networks:
-      - app-network
+    expose:
+      - "8080"
 
 volumes:
   mysql_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   app-network:
+    name: app-network
+    driver: bridge
+
+
