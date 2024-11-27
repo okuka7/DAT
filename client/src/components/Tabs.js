@@ -25,18 +25,15 @@ function Tabs({ setShowLoginModal }) {
 
   return (
     <div className="tabs">
-      <button
-        className="tab upload-button"
-        onClick={handleUploadClick}
-        disabled={isLoggedIn && userRole !== "GOLD"}
-        title={
-          isLoggedIn && userRole !== "GOLD"
-            ? "GOLD 등급 사용자만 글쓰기가 가능합니다."
-            : "글쓰기"
-        }
-      >
-        글쓰기
-      </button>
+      {isLoggedIn && userRole === "GOLD" && (
+        <button
+          className="tab upload-button"
+          onClick={handleUploadClick}
+          title="글쓰기"
+        >
+          글쓰기
+        </button>
+      )}
     </div>
   );
 }

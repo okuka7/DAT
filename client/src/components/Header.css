@@ -46,15 +46,21 @@
 }
 
 /* 로그인 아이콘 버튼 */
+/* 기존 .login-icon 클래스 수정 */
 .login-icon {
-  position: absolute;
-  right: 400px;
-  top: 50px;
+  /* position: absolute; 제거 */
+  /* right: 400px; 제거 */
+  /* top: 50px; 제거 */
   color: black;
   font-size: 1.5rem;
   background: none;
   border: none;
   cursor: pointer;
+}
+
+/* 로그인 아이콘에 마진 추가하여 다른 요소와의 간격 확보 */
+.header-link + .login-icon {
+  margin-left: 20px;
 }
 
 .login-icon:hover {
