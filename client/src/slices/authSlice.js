@@ -147,7 +147,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload; // UserDTO 객체 포함 (role 포함)
+        state.user = action.payload.data; // UserDTO 객체 포함 (role 포함)
         state.userStatus = "succeeded";
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
