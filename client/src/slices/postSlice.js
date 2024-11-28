@@ -10,7 +10,7 @@ export const getLatestPosts = createAsyncThunk(
     try {
       const response = await API.get("/posts/latest");
       // 백엔드 응답에 따라 반환 데이터 수정
-      return response.data.posts || response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data || "Failed to fetch latest posts"
