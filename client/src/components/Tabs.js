@@ -8,7 +8,12 @@ import { selectUserRole } from "../slices/authSlice"; // role 셀렉터 임포�
 function Tabs({ setShowLoginModal }) {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태
   const userRole = useSelector(selectUserRole); // 사용자 등급
+  const userStatus = useSelector((state) => state.auth.userStatus); // 사용자 상태
   const navigate = useNavigate();
+
+  console.log("isLoggedIn:", isLoggedIn);
+  console.log("userRole:", userRole);
+  console.log("userStatus:", userStatus);
 
   const handleUploadClick = () => {
     console.log("User role:", userRole);
@@ -22,6 +27,11 @@ function Tabs({ setShowLoginModal }) {
       setShowLoginModal(true); // 로그인 모달 표시
     }
   };
+
+  // 사용자 정보가 로드 중일 때는 버튼을 표시하지 않음
+  if (userStatus === "loading") {
+    return null;
+  }
 
   return (
     <div className="tabs">
