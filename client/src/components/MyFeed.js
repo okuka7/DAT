@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux"; // useDispatch 임포트
+import { getCurrentUser } from "../slices/authSlice"; // getCurrentUser Thunk 임포트
 import API from "../api";
 import Tabs from "./Tabs";
 import "./MyFeed.css";
@@ -12,12 +14,19 @@ function MyFeed({ setShowLoginModal }) {
   const [filterTag, setFilterTag] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch(); // dispatch 선언
 
   useEffect(() => {
+    // URL에서 태그 추출
     const queryParams = new URLSearchParams(location.search);
     const tag = queryParams.get("tag");
     setFilterTag(tag);
   }, [location.search]);
+
+  // 컴포넌트 마운트 시 현재 사용자 정보 가져오기
+  useEffect(() => {
+    dispatch(getCurrentUser());
+  }, [dispatch]);
 
   // 모든 태그 가져오기
   useEffect(() => {
@@ -33,6 +42,7 @@ function MyFeed({ setShowLoginModal }) {
     fetchTags();
   }, []);
 
+  // 포스트 가져오기
   useEffect(() => {
     const fetchPosts = async () => {
       try {
