@@ -58,14 +58,8 @@ export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getCurrentUserRequest();
-      if (response.success) {
-        return response.data; // UserDTO 객체만 반환
-      } else {
-        return rejectWithValue(
-          response.message || "현재 사용자 정보를 가져오는데 실패했습니다."
-        );
-      }
+      const user = await getCurrentUserRequest(); // { id, username, role }
+      return user; // 직접 사용자 데이터를 반환
     } catch (error) {
       return rejectWithValue(
         error.message || "현재 사용자 정보를 가져오는데 실패했습니다."
@@ -93,7 +87,7 @@ export const getStatus = createAsyncThunk(
 const initialState = {
   isLoggedIn: !!token,
   token: token,
-  user: null, // UserDTO 객체 (id, username, email, role)
+  user: null, // { id, username, role }
   error: null,
   loginStatus: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   registerStatus: "idle",
@@ -153,7 +147,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
-        state.user = action.payload; // UserDTO 객체 포함 (role 포함)
+        state.user = action.payload; // { id, username, role }
         state.userStatus = "succeeded";
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
